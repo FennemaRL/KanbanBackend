@@ -23,4 +23,7 @@ userSchema.pre("save", function(next) {
     next(err);
   }
 });
+userSchema.statics.findByName = function(name) {
+  return this.findOne({ userName: new RegExp(name, "i") });
+};
 module.exports = mongoose.model("User", userSchema);

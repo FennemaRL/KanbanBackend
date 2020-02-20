@@ -6,6 +6,8 @@ function encrypt(password) {
 }
 
 const compare = (password, encryptpassword) => {
+  console.log("--------------estoy aka pa ");
+  console.log({ p: password, ph: encryptpassword });
   return Bcrypt.compareSync(password, encryptpassword);
 };
 
