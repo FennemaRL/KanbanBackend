@@ -5,7 +5,7 @@ const User = require("../persistence/user");
 router.post("/register", async (req, res) => {
   let user = new User({
     userName: req.body.userName,
-    passwordHash: req.body.passwordHash
+    password: req.body.password
   });
   try {
     let newUser = await user.save();
@@ -15,8 +15,15 @@ router.post("/register", async (req, res) => {
   }
 });
 
-router.patch("/login", (req, res) => {
-  req.param.id;
+router.post("/login", (req, res) => {
+  let userTofind = req.body.userName;
+  let pass = req.body.password;
+  try {
+    let user = User.findByName(userTofind);
+    if (!user || Auth.compare(pass, user.password))
+      res.status(400).json({ message: "User or password incorrect" });
+    res.status(200).json({ message: "todo" });
+  }
 });
 
 module.exports = router;
