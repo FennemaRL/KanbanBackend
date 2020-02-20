@@ -1,17 +1,21 @@
 const Bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
 require("dotenv").config();
 
-function encrypt(password) {
-  return Bcrypt.hashSync(password, 10);
-}
+const encrypt = password => Bcrypt.hashSync(password, 10);
 
-const compare = (password, encryptpassword) => {
-  console.log("--------------estoy aka pa ");
-  console.log({ p: password, ph: encryptpassword });
-  return Bcrypt.compareSync(password, encryptpassword);
+const compare = (password, encryptpassword) =>
+  Bcrypt.compareSync(password, encryptpassword);
+
+let secret = process.env.SECRET;
+const genToken = user => {
+  return {
+    token: jwt.sign({ data: user.UserName }, `${secret}`, { expiresIn: "2h" })
+  };
 };
 
 module.exports = {
   encrypt,
-  compare
+  compare,
+  genToken
 };

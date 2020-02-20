@@ -21,7 +21,7 @@ router.post("/login", async (req, res) => {
   try {
     let user = await User.findByName(userTofind);
     if (!user || !auth.compare(pass, user.password)) throw " ";
-    res.status(200).json({ message: "todo" });
+    res.status(200).json(auth.genToken(user));
   } catch (e) {
     res.status(400).json({ message: "User or password incorrect " + e });
   }
