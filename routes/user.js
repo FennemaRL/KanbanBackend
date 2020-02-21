@@ -9,7 +9,8 @@ const auth = require("../auth");
 router.post("/register", async (req, res) => {
   let user = new User({
     userName: req.body.userName,
-    password: req.body.password
+    password: req.body.password,
+    boards: undefined
   });
   try {
     let newUser = await user.save();
@@ -29,8 +30,23 @@ router.post("/login", async (req, res) => {
     let user = await User.findByName(userTofind);
     if (!user || !auth.compare(pass, user.password)) throw " ";
     res.status(200).json(auth.genToken(user));
-  } catch (e) {
+  } catch (err) {
     res.status(400).json({ message: "User or password incorrect " + e });
+  }
+});
+{
+  /*reorder*/
+}
+router.patch("/newOrder", auth.isAuth, async (req, res) => {
+  let userName = auth.verify(req.headers.token).data;
+  try {
+    let boardReOrder = req.body.boardsOrder;
+    let userToUpdate = await User.findByName(userName);
+    userToUpdate.boards = boardReOrder;
+    await userToUpdate.save();
+    res.status(200).json({ message: "complete" });
+  } catch (err) {
+    res.status(400).json({ message: err });
   }
 });
 

@@ -17,9 +17,21 @@ const genToken = user => {
 };
 const verify = token => jwt.verify(token, secret);
 
+const isAuth = (req, res, next) => {
+  let token = req.headers.token;
+  if (!token) throw "no token";
+  try {
+    verify(token);
+    next();
+  } catch (err) {
+    res.status(401).json({ message: "not authorized" + err });
+  }
+};
+
 module.exports = {
   encrypt,
   compare,
   genToken,
-  verify
+  verify,
+  isAuth
 };
