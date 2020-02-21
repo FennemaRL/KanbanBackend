@@ -2,6 +2,10 @@ const express = require("express");
 const router = express.Router();
 const User = require("../persistence/user");
 const auth = require("../auth");
+
+{
+  /*register*/
+}
 router.post("/register", async (req, res) => {
   let user = new User({
     userName: req.body.userName,
@@ -15,6 +19,9 @@ router.post("/register", async (req, res) => {
   }
 });
 
+{
+  /*login*/
+}
 router.post("/login", async (req, res) => {
   let userTofind = req.body.userName;
   let pass = req.body.password;

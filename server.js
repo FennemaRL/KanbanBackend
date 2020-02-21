@@ -1,6 +1,8 @@
 const express = require("express");
 const app = express();
 const mongoose = require("mongoose");
+const userRouter = require("./routes/user");
+const boardRouter = require("./routes/board");
 require("dotenv").config();
 
 const uri = process.env.URIMONGO;
@@ -12,6 +14,6 @@ db.once("open", () => console.log("conected 2 db"));
 
 app.use(express.json());
 
-const userRouter = require("./routes/user");
 app.use("/user", userRouter);
+app.use("/board", boardRouter);
 app.listen(3000, () => console.log("server started"));
