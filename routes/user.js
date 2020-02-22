@@ -9,8 +9,7 @@ const auth = require("../auth");
 router.post("/register", async (req, res) => {
   let user = new User({
     userName: req.body.userName,
-    password: req.body.password,
-    boards: undefined
+    password: req.body.password
   });
   try {
     let newUser = await user.save();
@@ -31,7 +30,7 @@ router.post("/login", async (req, res) => {
     if (!user || !auth.compare(pass, user.password)) throw " ";
     res.status(200).json(auth.genToken(user));
   } catch (err) {
-    res.status(400).json({ message: "User or password incorrect " + e });
+    res.status(400).json({ message: "User or password incorrect " + err });
   }
 });
 {
