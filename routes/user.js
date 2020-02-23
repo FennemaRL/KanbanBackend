@@ -14,8 +14,11 @@ router.post("/register", async (req, res) => {
   try {
     let newUser = await user.save();
     res.status(201).json({ userName: newUser.userName });
-  } catch (error) {
-    res.status(400).json({ message: error.message });
+  } catch (err) {
+    res.status(400);
+    if (err.name === "MongoError" && err.code === 11000)
+      res.json({ message: "Username already exists" });
+    else res.json({ message: "Username or password empty" });
   }
 });
 
@@ -28,7 +31,7 @@ router.post("/login", async (req, res) => {
   try {
     let user = await User.findByName(userTofind);
     if (!user || !auth.compare(pass, user.password)) throw " ";
-    res.status(200).json(auth.genToken(user));
+    res.status(200).json({ token: auth.genToken(user) });
   } catch (err) {
     res.status(400).json({ message: "User or password incorrect " + err });
   }
