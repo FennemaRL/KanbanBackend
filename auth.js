@@ -9,22 +9,20 @@ const compare = (password, encryptpassword) =>
   Bcrypt.compareSync(password, encryptpassword);
 
 const genToken = user => {
-  return {
-    token: jwt.sign({ data: user.userName }, secret, {
-      expiresIn: "0.5h"
-    })
-  };
+  return jwt.sign({ data: user.userName }, secret, {
+    expiresIn: "0.5h"
+  });
 };
 const verify = token => jwt.verify(token, secret);
 
 const isAuth = (req, res, next) => {
-  let token = req.headers.token;
-  if (!token) throw "no token";
   try {
+    if (!req.headers.token) throw Error("no token");
+    let token = req.headers.token.split(" ")[1];
     verify(token);
     next();
   } catch (err) {
-    res.status(401).json({ message: "not authorized" + err });
+    res.status(401).json({ message: "not authorized " + err.message });
   }
 };
 

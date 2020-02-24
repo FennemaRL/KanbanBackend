@@ -31,24 +31,47 @@ router.post("/login", async (req, res) => {
   try {
     let user = await User.findByName(userTofind);
     if (!user || !auth.compare(pass, user.password)) throw " ";
-    res.status(200).json({ token: auth.genToken(user) });
+    res.status(200).json({ token: "bearer " + auth.genToken(user) });
   } catch (err) {
-    res.status(400).json({ message: "User or password incorrect " + err });
+    res.status(400).json({ message: "User or password incorrect" });
   }
 });
 {
   /*reorder*/
 }
-router.patch("/newOrder", auth.isAuth, async (req, res) => {
-  let userName = auth.verify(req.headers.token).data;
+const _NewOrderVerifySameElements = (lbefore, lafter) => {
+  let mapv = new Map();
+  let len = lbefore.length;
+  if (len === lafter.length) {
+    for (board in lbefore) {
+      mapv.set(lbefore[board], true);
+    }
+    for (board in lafter) {
+      mapv.set(lafter[board], true);
+    }
+    return len === mapv.size;
+  }
+  return false;
+};
+
+router.patch("/neworder", auth.isAuth, async (req, res) => {
+  let userName2Find = auth.verify(req.headers.token.split(" ")[1]).data;
   try {
     let boardReOrder = req.body.boardsOrder;
-    let userToUpdate = await User.findByName(userName);
+    let userToUpdate = await User.findByName(userName2Find);
+    let oldOrderboards = [...userToUpdate.boards];
+    if (!_NewOrderVerifySameElements(oldOrderboards, boardReOrder)) {
+      throw Error("The lists don't contains the same elements");
+    }
     userToUpdate.boards = boardReOrder;
     await userToUpdate.save();
-    res.status(200).json({ message: "complete" });
+    res.status(200).json({
+      userName: userName2Find,
+      oldOrder: oldOrderboards,
+      newOrder: boardReOrder
+    });
   } catch (err) {
-    res.status(400).json({ message: err });
+    res.status(400).json({ message: err.message });
   }
 });
 
