@@ -1,27 +1,28 @@
 const supertest = require("supertest");
 const app = require("server");
 const userModel = require("persistence/user");
+const boardModel = require("persistence/board");
 const mongoose = require("mongoose");
 const auth = require("auth");
 
-describe("user register route verification", () => {
-  let request = supertest(app);
-  let db;
+const uri = process.env.URIMONGOTEST;
+const db = mongoose.connection;
+describe("user route verification", () => {
   let user;
+  let request;
   beforeAll(async done => {
-    const uri = process.env.URIMONGOTEST;
     mongoose.connect(uri, { useNewUrlParser: true, useUnifiedTopology: true });
-    const db = mongoose.connection;
-
     db.on("error connection", error => console.error(error));
     db.once("open", () => console.log("conected 2 db"));
     await userModel.deleteMany({});
-
     user = { userName: "pepe", password: "peppa" };
     done();
   });
-  afterAll(done => {
-    db.close();
+  beforeEach(() => {
+    request = supertest(app);
+  });
+  afterAll(async done => {
+    //await db.close();
     done();
   });
   afterEach(async done => {
@@ -187,6 +188,68 @@ describe("user register route verification", () => {
     let result = JSON.parse(res.text);
     expect(result.message).toBe("not authorized jwt expired");
     expect(res.status).toBe(401);
+    done();
+  });
+});
+
+describe("board route verification", () => {
+  let user;
+  let board;
+  let request;
+  beforeAll(async done => {
+    user = { userName: "pepa", password: "pepapass" };
+    board = { boardTitle: "board1" };
+    /*
+    db.on("error connection", error => console.error(error));
+    db.once("open", () => console.log("conected 2 db"));*/
+    await new userModel(user).save();
+
+    done();
+  });
+  afterAll(async done => {
+    //await db.close();
+
+    await boardModel.deleteMany({});
+    await userModel.deleteMany({});
+    done();
+  });
+  beforeEach(async done => {
+    await boardModel.deleteMany({});
+    request = supertest(app);
+    done();
+  });
+  it("Get an user board successfully", async done => {
+    await new boardModel({
+      ...board,
+      title: board.boardTitle + "." + user.userName
+    }).save();
+
+    let res = await request
+      .get(`/board/${board.boardTitle}`)
+      .set("Accept", "application/json")
+      .set("Token", `Bearer ${auth.genToken(user)}`)
+      .send(board);
+    let result = JSON.parse(res.text);
+
+    expect(result.message).toBe(undefined);
+    expect(res.status).toBe(200);
+    expect(result.title).toBe(board.boardTitle);
+
+    done();
+  });
+  it("Post an user board successfully", async done => {
+    let res = await request
+      .post("/board")
+      .set("Accept", "application/json")
+      .set("Token", `Bearer ${auth.genToken(user)}`)
+      .send(board);
+    let result = JSON.parse(res.text);
+
+    expect(result.message).toBe(undefined);
+    expect(res.status).toBe(201);
+    console.log(result);
+    expect(result.title).toBe(board.boardTitle);
+
     done();
   });
 });

@@ -25,11 +25,16 @@ const isAuth = (req, res, next) => {
     res.status(401).json({ message: "not authorized " + err.message });
   }
 };
-
+const getName = tokenb => {
+  if (!tokenb) throw Error("no token");
+  let token = tokenb.split(" ")[1];
+  return verify(token).data;
+};
 module.exports = {
   encrypt,
   compare,
   genToken,
   verify,
-  isAuth
+  isAuth,
+  getName
 };

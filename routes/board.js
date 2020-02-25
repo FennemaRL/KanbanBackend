@@ -7,16 +7,19 @@ const User = require("../persistence/user");
 {
   /*get board */
 }
-router.get("/:boardName", auth.isAuth, async (req, res) => {
+router.get("/:boardTitle", auth.isAuth, async (req, res) => {
   let boardFind = await _findBoard(req);
-
-  res.status(200).json({ board: boardFind });
+  res
+    .status(200)
+    .json({ tables: boardFind.tables, title: boardFind.title.split(".")[0] });
 });
 {
   /*create board */
 }
 router.post("/", auth.isAuth, async (req, res) => {
   try {
+    let boardTitle = req.body.boardTitle;
+    let userName = auth.getName(req.headers.token);
     let user2Update = await User.findByName(req);
     if (!user2Update.boards) user2Update.boards = [];
     user2Update.boards.push(boardTitle);
@@ -25,15 +28,15 @@ router.post("/", auth.isAuth, async (req, res) => {
       title: boardTitle + "." + userName
     });
     await boardToCreate.save();
-    res.status(201).json({ title: boardToCreate.title });
-  } catch (e) {
-    res.status(500).json({ message: e });
+    res.status(201).json({ tables: [], title: boardTitle });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 });
 {
   /*create table */
 }
-router.post("/newTable", auth.isAuth, async (req, res) => {
+router.post("/newTable/", auth.isAuth, async (req, res) => {
   let newTableTitle = req.body.tableTitle;
   try {
     let board2Update = await _findBoard(req);
@@ -50,7 +53,7 @@ router.post("/newTable", auth.isAuth, async (req, res) => {
   /*create task */
 }
 
-router.post("/newTask", auth.isAuth, async (req, res) => {
+router.post("/newTask/", auth.isAuth, async (req, res) => {
   let task = req.body.task;
   let tableTitle = req.body.tableTitle;
   try {
@@ -72,8 +75,8 @@ router.post("/newTask", auth.isAuth, async (req, res) => {
 });
 
 const _findBoard = req => {
-  let boardTitle = req.body.boardTitle;
-  let userName = auth.verify(req.headers.token).data;
+  let boardTitle = req.params.boardTitle || req.body.boardTitle;
+  let userName = auth.getName(req.headers.token);
   return Board.findByTitle(boardTitle + "." + userName);
 };
 module.exports = router;
