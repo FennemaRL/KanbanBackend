@@ -8,10 +8,14 @@ const User = require("../persistence/user");
   /*get board */
 }
 router.get("/:boardTitle", auth.isAuth, async (req, res) => {
-  let boardFind = await _findBoard(req);
-  res
-    .status(200)
-    .json({ tables: boardFind.tables, title: boardFind.title.split(".")[0] });
+  try {
+    let boardFind = await _findBoard(req);
+    res
+      .status(200)
+      .json({ tables: boardFind.tables, title: boardFind.title.split(".")[0] });
+  } catch (e) {
+    res.status(400).json({ message: "Board not found" });
+  }
 });
 {
   /*create board */
@@ -19,6 +23,7 @@ router.get("/:boardTitle", auth.isAuth, async (req, res) => {
 router.post("/", auth.isAuth, async (req, res) => {
   try {
     let boardTitle = req.body.boardTitle;
+    if (!boardTitle) throw new Error("The board is empty");
     let userName = auth.getName(req.headers.token);
     let user2Update = await User.findByName(req);
     if (!user2Update.boards) user2Update.boards = [];
@@ -30,7 +35,7 @@ router.post("/", auth.isAuth, async (req, res) => {
     await boardToCreate.save();
     res.status(201).json({ tables: [], title: boardTitle });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(400).json({ message: err.message });
   }
 });
 {
@@ -40,12 +45,15 @@ router.post("/newTable/", auth.isAuth, async (req, res) => {
   let newTableTitle = req.body.tableTitle;
   try {
     let board2Update = await _findBoard(req);
+    if (!newTableTitle) throw new Error("The new table don't have title");
     if (!board2Update.tables) board2Update.tables = [];
     board2Update.tables.push({ titleTable: newTableTitle, content: [] });
     await board2Update.save();
-    res.status(201).json({ table: { newTableTitle } });
+    res
+      .status(201)
+      .json({ boardTitle: board2Update.title, tables: board2Update.tables });
   } catch (err) {
-    res.status(400).json({ message: "error + " + err });
+    res.status(400).json({ message: err.message });
   }
 });
 
