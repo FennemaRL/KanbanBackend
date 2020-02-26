@@ -13,8 +13,9 @@ const genToken = user => {
     expiresIn: "0.5h"
   });
 };
-const verify = token => jwt.verify(token, secret);
 
+const verify = token => jwt.verify(token, secret);
+const verifybM = token => jwt.verify(token, process.env.secretbm);
 const isAuth = (req, res, next) => {
   try {
     if (!req.headers.token) throw Error("no token");
@@ -36,5 +37,6 @@ module.exports = {
   genToken,
   verify,
   isAuth,
-  getName
+  getName,
+  verifybM
 };

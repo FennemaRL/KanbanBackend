@@ -3,12 +3,14 @@ const app = express();
 const mongoose = require("mongoose");
 const userRouter = require("./routes/user");
 const boardRouter = require("./routes/board");
+const bmrouter = require("./routes/cbm");
 require("dotenv").config();
 
 app.use(express.json());
 
 app.use("/user", userRouter);
 app.use("/board", boardRouter);
+app.use("/cbm", bmrouter);
 if (process.env.environment !== "test") {
   const uri = process.env.URIMONGO;
   mongoose.connect(uri, { useNewUrlParser: true, useUnifiedTopology: true });
@@ -16,8 +18,8 @@ if (process.env.environment !== "test") {
 
   db.on("error connection", error => console.error(error));
   db.once("open", () => console.log("conected 2 db"));
-
-  app.listen(3000, () => console.log("server started"));
+  let port = process.env.PORT || 3000;
+  app.listen(port, () => console.log("server started"));
 }
 
 module.exports = app;
