@@ -12,7 +12,7 @@ router.get("/:boardTitle", auth.isAuth, async (req, res) => {
     let boardFind = await _findBoard(req);
     res
       .status(200)
-      .json({ tables: boardFind.tables, title: boardFind.title.split(".")[0] });
+      .json({ tables: boardFind.tables, title: _boardTitle(boardFind) });
   } catch (e) {
     res.status(400).json({ message: "Board not found" });
   }
@@ -49,9 +49,10 @@ router.post("/newTable/", auth.isAuth, async (req, res) => {
     if (!board2Update.tables) board2Update.tables = [];
     board2Update.tables.push({ titleTable: newTableTitle, content: [] });
     await board2Update.save();
-    res
-      .status(201)
-      .json({ boardTitle: board2Update.title, tables: board2Update.tables });
+    res.status(201).json({
+      boardTitle: _boardTitle(board2Update),
+      tables: board2Update.tables
+    });
   } catch (err) {
     res.status(400).json({ message: err.message });
   }
@@ -61,29 +62,43 @@ router.post("/newTable/", auth.isAuth, async (req, res) => {
   /*create task */
 }
 
-router.post("/newTask/", auth.isAuth, async (req, res) => {
-  let task = req.body.task;
-  let tableTitle = req.body.tableTitle;
+router.post("/table/newTask/", auth.isAuth, async (req, res) => {
   try {
+    let task = req.body.task;
+    let tableTitle = req.body.tableTitle;
+    if (
+      !tableTitle ||
+      (Object.entries(task).length === 0 && task.constructor === Object)
+    )
+      throw new Error("The tableTitle or the task are empty");
     let board2Update = await _findBoard(req);
     let indextable = board2Update.tables.findIndex(
       t => t.titleTable === tableTitle
     );
+    if (indextable === -1)
+      throw new Error(
+        "The table dont belong to the board : " + _boardTitle(board2Update)
+      );
     let table = board2Update.tables[indextable];
 
     if (!table.content) table.content = [];
 
     table.content.push(task);
-    board2Update.tables.splice(indextable, 1, table);
     await board2Update.save();
-    res.status(201).json(table);
+    res.status(201).json({
+      boardTitle: _boardTitle(board2Update),
+      tables: board2Update.tables
+    });
   } catch (err) {
-    res.status(400).json("error + " + err);
+    res.status(400).json({ message: err.message });
   }
 });
-
+const _boardTitle = board => {
+  return board.title.split(".")[0];
+};
 const _findBoard = req => {
   let boardTitle = req.params.boardTitle || req.body.boardTitle;
+  if (!boardTitle) throw new Error("The boardTitle is empty");
   let userName = auth.getName(req.headers.token);
   return Board.findByTitle(boardTitle + "." + userName);
 };

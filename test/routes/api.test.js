@@ -7,13 +7,13 @@ const auth = require("auth");
 
 const uri = process.env.URIMONGOTEST;
 const db = mongoose.connection;
+mongoose.connect(uri, { useNewUrlParser: true, useUnifiedTopology: true });
+db.on("error connection", error => console.error(error));
+db.once("open", () => console.log("conected 2 db"));
 describe("user route verification", () => {
   let user;
   let request;
   beforeAll(async done => {
-    mongoose.connect(uri, { useNewUrlParser: true, useUnifiedTopology: true });
-    db.on("error connection", error => console.error(error));
-    db.once("open", () => console.log("conected 2 db"));
     await userModel.deleteMany({});
     user = { userName: "pepe", password: "peppa" };
     done();
@@ -195,9 +195,13 @@ describe("board route verification", () => {
   let user;
   let board;
   let request;
+  let task;
+  let body;
   beforeAll(async done => {
     user = { userName: "pepa", password: "pepapass" };
     board = { boardTitle: "board1" };
+    body = { ...board, tableTitle: "pepa" };
+    task = { title: "find a papa", description: " and just cook it " };
     await new userModel(user).save();
 
     done();
@@ -268,7 +272,7 @@ describe("board route verification", () => {
 
     done();
   });
-  it("Add(.Post) an user table in an saved board", async done => {
+  it("Add(.Post) an user table in an saved board successfully", async done => {
     await new boardModel({
       ...board,
       title: board.boardTitle + "." + user.userName
@@ -292,6 +296,183 @@ describe("board route verification", () => {
     let result2 = JSON.parse(res2.text);
     expect(res2.status).toBe(201);
     expect(result2.tables).toStrictEqual([{ titleTable: "pepa", content: [] }]);
+    done();
+  });
+  it("Add(.Post) an user table without title in an saved board ", async done => {
+    await new boardModel({
+      ...board,
+      title: board.boardTitle + "." + user.userName
+    }).save();
+
+    let res = await request
+      .get(`/board/${board.boardTitle}`)
+      .set("Accept", "application/json")
+      .set("Token", `Bearer ${auth.genToken(user)}`);
+    let result = JSON.parse(res.text);
+
+    expect(result.message).toBe(undefined);
+    expect(res.status).toBe(200);
+    expect(result.title).toBe(board.boardTitle);
+    expect(result.tables).toStrictEqual([]);
+    let res2 = await request
+      .post("/board/newTable")
+      .set("Accept", "application/json")
+      .set("Token", `Bearer ${auth.genToken(user)}`)
+      .send({ ...board, tableTitle: "" });
+    let result2 = JSON.parse(res2.text);
+    expect(res2.status).toBe(400);
+    expect(result2.message).toBe("The new table don't have title");
+    done();
+  });
+  it("Add(.Post) an user task in an saved table successfully", async done => {
+    await new boardModel({
+      ...board,
+      title: board.boardTitle + "." + user.userName
+    }).save();
+
+    let res = await request
+      .get(`/board/${board.boardTitle}`)
+      .set("Accept", "application/json")
+      .set("Token", `Bearer ${auth.genToken(user)}`);
+    let result = JSON.parse(res.text);
+
+    expect(result.message).toBe(undefined);
+    expect(res.status).toBe(200);
+    expect(result.title).toBe(board.boardTitle);
+    expect(result.tables).toStrictEqual([]);
+
+    let res2 = await request
+      .post("/board/newTable")
+      .set("Accept", "application/json")
+      .set("Token", `Bearer ${auth.genToken(user)}`)
+      .send(body);
+    let result2 = JSON.parse(res2.text);
+    expect(res2.status).toBe(201);
+    expect(result2.tables).toStrictEqual([{ titleTable: "pepa", content: [] }]);
+
+    let res3 = await request
+      .post("/board/table/newTask/")
+      .set("Accept", "application/json")
+      .set("Token", `Bearer ${auth.genToken(user)}`)
+      .send({ ...body, task: task });
+
+    let result3 = JSON.parse(res3.text);
+    expect(result3.boardTitle).toBe(board.boardTitle);
+    expect(res3.status).toBe(201);
+    expect(result3.tables).toStrictEqual([
+      {
+        titleTable: "pepa",
+        content: [task]
+      }
+    ]);
+    done();
+  });
+  it("Add(.Post) an user task empty in an saved table", async done => {
+    await new boardModel({
+      ...board,
+      title: board.boardTitle + "." + user.userName
+    }).save();
+
+    let res = await request
+      .get(`/board/${board.boardTitle}`)
+      .set("Accept", "application/json")
+      .set("Token", `Bearer ${auth.genToken(user)}`);
+    let result = JSON.parse(res.text);
+
+    expect(result.message).toBe(undefined);
+    expect(res.status).toBe(200);
+    expect(result.title).toBe(board.boardTitle);
+    expect(result.tables).toStrictEqual([]);
+
+    let res2 = await request
+      .post("/board/newTable")
+      .set("Accept", "application/json")
+      .set("Token", `Bearer ${auth.genToken(user)}`)
+      .send(body);
+    let result2 = JSON.parse(res2.text);
+    expect(res2.status).toBe(201);
+    expect(result2.tables).toStrictEqual([{ titleTable: "pepa", content: [] }]);
+
+    let res3 = await request
+      .post("/board/table/newTask/")
+      .set("Accept", "application/json")
+      .set("Token", `Bearer ${auth.genToken(user)}`)
+      .send({ ...body, task: {} });
+
+    let result3 = JSON.parse(res3.text);
+    expect(res3.status).toBe(400);
+    expect(result3.message).toStrictEqual(
+      "The tableTitle or the task are empty"
+    );
+    done();
+  });
+  it("Add(.Post) an user task in an nameless table ", async done => {
+    await new boardModel({
+      ...board,
+      title: board.boardTitle + "." + user.userName
+    }).save();
+
+    let res = await request
+      .get(`/board/${board.boardTitle}`)
+      .set("Accept", "application/json")
+      .set("Token", `Bearer ${auth.genToken(user)}`);
+    let result = JSON.parse(res.text);
+
+    expect(result.message).toBe(undefined);
+    expect(res.status).toBe(200);
+    expect(result.title).toBe(board.boardTitle);
+    expect(result.tables).toStrictEqual([]);
+
+    let res2 = await request
+      .post("/board/newTable")
+      .set("Accept", "application/json")
+      .set("Token", `Bearer ${auth.genToken(user)}`)
+      .send(body);
+    let result2 = JSON.parse(res2.text);
+    expect(res2.status).toBe(201);
+    expect(result2.tables).toStrictEqual([{ titleTable: "pepa", content: [] }]);
+
+    let res3 = await request
+      .post("/board/table/newTask/")
+      .set("Accept", "application/json")
+      .set("Token", `Bearer ${auth.genToken(user)}`)
+      .send({ ...body, tableTitle: "", task: task });
+
+    let result3 = JSON.parse(res3.text);
+    expect(res3.status).toBe(400);
+    expect(result3.message).toStrictEqual(
+      "The tableTitle or the task are empty"
+    );
+    done();
+  });
+  it("Add(.Post) an user task in an table dont save", async done => {
+    await new boardModel({
+      ...board,
+      title: board.boardTitle + "." + user.userName
+    }).save();
+
+    let res = await request
+      .get(`/board/${board.boardTitle}`)
+      .set("Accept", "application/json")
+      .set("Token", `Bearer ${auth.genToken(user)}`);
+    let result = JSON.parse(res.text);
+
+    expect(result.message).toBe(undefined);
+    expect(res.status).toBe(200);
+    expect(result.title).toBe(board.boardTitle);
+    expect(result.tables).toStrictEqual([]);
+
+    let res3 = await request
+      .post("/board/table/newTask/")
+      .set("Accept", "application/json")
+      .set("Token", `Bearer ${auth.genToken(user)}`)
+      .send({ ...body, tableTitle: "title", task: task });
+
+    let result3 = JSON.parse(res3.text);
+    expect(res3.status).toBe(400);
+    expect(result3.message).toStrictEqual(
+      "The table dont belong to the board : " + board.boardTitle
+    );
     done();
   });
 });
