@@ -3,6 +3,14 @@ const router = express.Router();
 const User = require("../persistence/user");
 const auth = require("../auth");
 
+router.get("/:userName", async (req, res) => {
+  try {
+    let user = await User.findByName(req.params.userName);
+    res.status(200).json({ userName: user.userName, boards: user.boards });
+  } catch (err) {
+    res.status(400).json({ message: err });
+  }
+});
 {
   /*register*/
 }
@@ -30,10 +38,11 @@ router.post("/login", async (req, res) => {
   let pass = req.body.password;
   try {
     let user = await User.findByName(userTofind);
-    if (!user || !auth.compare(pass, user.password)) throw " ";
+    if (!user || !auth.compare(pass, user.password))
+      throw new Error("User or password incorrect");
     res.status(200).json({ token: "bearer " + auth.genToken(user) });
   } catch (err) {
-    res.status(400).json({ message: "User or password incorrect" });
+    res.status(400).json({ message: err.message });
   }
 });
 {
