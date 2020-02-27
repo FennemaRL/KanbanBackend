@@ -14,7 +14,7 @@ app.use("/cbm", bmrouter);
 if (process.env.environment !== "test") {
   const uri = process.env.URIMONGO;
   try {
-    await mongoose.connect(uri, {
+    mongoose.connect(uri, {
       useNewUrlParser: true,
       useUnifiedTopology: true
     });
