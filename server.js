@@ -4,7 +4,7 @@ const mongoose = require("mongoose");
 const userRouter = require("./routes/user");
 const boardRouter = require("./routes/board");
 const bmrouter = require("./routes/cbm");
-require("dotenv").config();
+if (process.env.enviroment !== "production") require("dotenv").config();
 
 app.use(express.json());
 
