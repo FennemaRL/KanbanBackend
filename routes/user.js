@@ -6,6 +6,7 @@ const auth = require("../auth");
 router.get("/:userName", async (req, res) => {
   try {
     let user = await User.findByName(req.params.userName);
+    if (!user) throw new Error("User not found");
     res.status(200).json({ userName: user.userName, boards: user.boards });
   } catch (err) {
     res.status(400).json({ message: err });
