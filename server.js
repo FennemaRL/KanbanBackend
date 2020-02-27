@@ -13,14 +13,14 @@ app.use("/board", boardRouter);
 app.use("/cbm", bmrouter);
 if (process.env.environment !== "test") {
   const uri = process.env.URIMONGO;
-  mongoose.connect(uri, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-  });
-
-  mongoose.connection.on("connected", () => {
-    console.log("bd conected");
-  });
+  try {
+    await mongoose.connect(uri, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true
+    });
+  } catch (err) {
+    console.log(err.message);
+  }
   let port = process.env.PORT || 3000;
   app.listen(port, () => console.log("server started"));
 }
