@@ -38,6 +38,7 @@ router.post("/login", async (req, res) => {
   let userTofind = req.body.userName;
   let pass = req.body.password;
   try {
+    if (!userTofind || !pass) throw new Error("UserName or password are empty");
     let user = await User.findByName(userTofind);
     if (!user || !auth.compare(pass, user.password))
       throw new Error("User or password incorrect");

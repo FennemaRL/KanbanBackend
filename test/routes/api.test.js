@@ -116,6 +116,20 @@ describe("user route verification", () => {
 
     done();
   });
+  it("Login an user withOut name & pass", async done => {
+    await new userModel(user).save();
+
+    let res = await request
+      .post("/user/login")
+      .set("Accept", "application/json");
+    let result = JSON.parse(res.text);
+
+    expect(result.message).toBe("UserName or password are empty");
+    expect(res.status).toBe(400);
+    expect(result.token).toBe(undefined);
+
+    done();
+  });
   it("NewOrder of an user board list successfully", async done => {
     await new userModel({ ...user, boards: ["pepa", "pape", "bug"] }).save();
 
