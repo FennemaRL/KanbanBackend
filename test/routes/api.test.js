@@ -286,6 +286,31 @@ describe("board route verification", () => {
 
     done();
   });
+  it("Delete an user board successfully", async done => {
+    await new boardModel({
+      ...board,
+      title: board.boardTitle + "." + user.userName
+    }).save();
+
+    let res = await request
+      .delete(`/board/${board.boardTitle}`)
+      .set("Accept", "application/json")
+      .set("Token", `Bearer ${auth.genToken(user)}`);
+
+    expect(res.status).toBe(204);
+
+    done();
+  });
+  it("Delete an user board not saved ", async done => {
+    let res = await request
+      .delete(`/board/${board.boardTitle}`)
+      .set("Accept", "application/json")
+      .set("Token", `Bearer ${auth.genToken(user)}`);
+
+    expect(res.status).toBe(204);
+
+    done();
+  });
   it("Add(.Post) an user table in an saved board successfully", async done => {
     await new boardModel({
       ...board,

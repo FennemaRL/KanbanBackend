@@ -4,9 +4,8 @@ const auth = require("../auth");
 const Board = require("../persistence/board");
 const User = require("../persistence/user");
 
-{
-  /*get board */
-}
+/*get board */
+
 router.get("/:boardTitle", auth.isAuth, async (req, res) => {
   try {
     let boardFind = await _findBoard(req);
@@ -17,9 +16,9 @@ router.get("/:boardTitle", auth.isAuth, async (req, res) => {
     res.status(400).json({ message: "Board not found" });
   }
 });
-{
-  /*create board */
-}
+
+/*create board */
+
 router.post("/", auth.isAuth, async (req, res) => {
   try {
     let boardTitle = req.body.boardTitle;
@@ -38,9 +37,9 @@ router.post("/", auth.isAuth, async (req, res) => {
     res.status(400).json({ message: err.message });
   }
 });
-{
-  /*create table */
-}
+
+/*create table */
+
 router.post("/newTable/", auth.isAuth, async (req, res) => {
   let newTableTitle = req.body.tableTitle;
   try {
@@ -58,9 +57,7 @@ router.post("/newTable/", auth.isAuth, async (req, res) => {
   }
 });
 
-{
-  /*create task */
-}
+/*create task */
 
 router.post("/table/newTask/", auth.isAuth, async (req, res) => {
   try {
@@ -102,4 +99,17 @@ const _findBoard = req => {
   let userName = auth.getName(req.headers.token);
   return Board.findByTitle(boardTitle + "." + userName);
 };
+
+/*delete board */
+router.delete("/:boardTitle", auth.isAuth, async (req, res) => {
+  try {
+    let userName = auth.getName(req.headers.token);
+    let titleb = req.params.boardTitle;
+    if (!titleb) throw new Error("board title is empty");
+    await Board.deleteOne({ title: titleb + "." + userName });
+    res.status(204).json({ message: "empty" });
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
 module.exports = router;
