@@ -10,7 +10,7 @@ const compare = (password, encryptpassword) =>
 
 const genToken = user => {
   return jwt.sign({ data: user.userName }, secret, {
-    expiresIn: "0.5h"
+    expiresIn: "4h"
   });
 };
 
