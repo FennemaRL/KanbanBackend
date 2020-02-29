@@ -10,6 +10,7 @@ const db = mongoose.connection;
 mongoose.connect(uri, { useNewUrlParser: true, useUnifiedTopology: true });
 db.on("error connection", error => console.error(error));
 db.once("open", () => console.log("conected 2 db"));
+
 describe("user route verification", () => {
   let user;
   let request;
@@ -18,8 +19,10 @@ describe("user route verification", () => {
     user = { userName: "pepe", password: "peppa" };
     done();
   });
+
   beforeEach(() => {
     request = supertest(app);
+    userModel.updateOne({ userName: user.userName }, { boards: [] });
   });
   afterAll(async done => {
     done();
@@ -296,9 +299,11 @@ describe("board route verification", () => {
       .delete(`/board/${board.boardTitle}`)
       .set("Accept", "application/json")
       .set("Token", `Bearer ${auth.genToken(user)}`);
-
+    let res2 = await request.get(`/user/${user.userName}`);
+    let result = JSON.parse(res2.text);
     expect(res.status).toBe(204);
-
+    expect(res2.status).toBe(200);
+    expect(result.boards).toStrictEqual([]);
     done();
   });
   it("Delete an user board not saved ", async done => {

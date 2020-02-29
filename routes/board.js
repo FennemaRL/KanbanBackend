@@ -103,10 +103,15 @@ const _findBoard = req => {
 /*delete board */
 router.delete("/:boardTitle", auth.isAuth, async (req, res) => {
   try {
-    let userName = auth.getName(req.headers.token);
+    let userNamed = auth.getName(req.headers.token);
     let titleb = req.params.boardTitle;
     if (!titleb) throw new Error("board title is empty");
-    await Board.deleteOne({ title: titleb + "." + userName });
+    await Board.deleteOne({ title: titleb + "." + userNamed });
+    let query = {
+      userName: userNamed
+    };
+    let remove = { $pull: { boards: titleb } };
+    await User.updateOne(query, remove);
     res.status(204).json({ message: "empty" });
   } catch (err) {
     res.status(400).json({ message: err.message });
