@@ -40,10 +40,12 @@ router.post("/", auth.isAuth, async (req, res) => {
 
 /*create table */
 
-router.post("/newTable/", auth.isAuth, async (req, res) => {
+router.post("/table/", auth.isAuth, async (req, res) => {
   let newTableTitle = req.body.tableTitle;
   try {
     let board2Update = await _findBoard(req);
+    if (!board2Update)
+      throw new Error("couldn't find the board " + req.body.boardTitle);
     if (!newTableTitle) throw new Error("The new table don't have title");
     if (!board2Update.tables) board2Update.tables = [];
     board2Update.tables.push({ titleTable: newTableTitle, content: [] });
@@ -59,7 +61,7 @@ router.post("/newTable/", auth.isAuth, async (req, res) => {
 
 /*create task */
 
-router.post("/table/newTask/", auth.isAuth, async (req, res) => {
+router.post("/table/task/", auth.isAuth, async (req, res) => {
   try {
     let task = req.body.task;
     let tableTitle = req.body.tableTitle;
@@ -112,6 +114,21 @@ router.delete("/:boardTitle", auth.isAuth, async (req, res) => {
     };
     let remove = { $pull: { boards: titleb } };
     await User.updateOne(query, remove);
+    res.status(204).json({ message: "empty" });
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
+/* */
+router.delete("/board/title", auth.isAuth, async (req, res) => {
+  try {
+    let titleBoard = req.body.boardTitle;
+    let titleTable = req.body.tableTitle;
+    let query = {
+      title: titleBoard
+    };
+    let remove = { $pull: { tables: titleTable } };
+    await Board.updateOne(query, remove);
     res.status(204).json({ message: "empty" });
   } catch (err) {
     res.status(400).json({ message: err.message });
