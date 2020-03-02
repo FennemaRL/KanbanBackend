@@ -119,8 +119,8 @@ router.delete("/:boardTitle", auth.isAuth, async (req, res) => {
     res.status(400).json({ message: err.message });
   }
 });
-/* */
-router.delete("/board/title", auth.isAuth, async (req, res) => {
+/*delete table*/
+router.delete("/table", auth.isAuth, async (req, res) => {
   try {
     let titleBoard = req.body.boardTitle;
     let titleTable = req.body.tableTitle;
@@ -128,6 +128,23 @@ router.delete("/board/title", auth.isAuth, async (req, res) => {
       title: titleBoard
     };
     let remove = { $pull: { tables: titleTable } };
+    await Board.updateOne(query, remove);
+    res.status(204).json({ message: "empty" });
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
+/*delete task*/
+router.delete("/table/task", auth.isAuth, async (req, res) => {
+  try {
+    let titleBoard = req.body.boardTitle;
+    let titleTable = req.body.tableTitle;
+    let titleTask = req.body.taskTitle;
+    let query = {
+      title: titleBoard,
+      tables: titleTable
+    };
+    let remove = { $pull: { content: titleTask } };
     await Board.updateOne(query, remove);
     res.status(204).json({ message: "empty" });
   } catch (err) {

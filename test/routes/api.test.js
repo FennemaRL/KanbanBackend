@@ -596,4 +596,65 @@ describe("board route verification", () => {
     );
     done();
   });
+  it("Delete an user task in an saved table successfully", async done => {
+    await new boardModel({
+      ...board,
+      title: board.boardTitle + "." + user.userName
+    }).save();
+
+    let res = await request
+      .get(`/board/${board.boardTitle}`)
+      .set("Accept", "application/json")
+      .set("Token", `Bearer ${auth.genToken(user)}`);
+    let result = JSON.parse(res.text);
+
+    expect(result.message).toBe(undefined);
+    expect(res.status).toBe(200);
+    expect(result.title).toBe(board.boardTitle);
+    expect(result.tables).toStrictEqual([]);
+
+    let res2 = await request
+      .post("/board/table")
+      .set("Accept", "application/json")
+      .set("Token", `Bearer ${auth.genToken(user)}`)
+      .send(body);
+    let result2 = JSON.parse(res2.text);
+    expect(res2.status).toBe(201);
+    expect(result2.tables).toStrictEqual([{ titleTable: "pepa", content: [] }]);
+
+    let res3 = await request
+      .post("/board/table/task/")
+      .set("Accept", "application/json")
+      .set("Token", `Bearer ${auth.genToken(user)}`)
+      .send({ ...body, task: task });
+
+    let result3 = JSON.parse(res3.text);
+    expect(result3.boardTitle).toBe(board.boardTitle);
+    expect(res3.status).toBe(201);
+    expect(result3.tables).toStrictEqual([
+      {
+        titleTable: "pepa",
+        content: [task]
+      }
+    ]);
+
+    let res4 = await request
+      .delete("/board/table/task")
+      .set("Token", `Bearer ${auth.genToken(user)}`)
+      .set("Token", `Bearer ${auth.genToken(user)}`)
+      .send({ ...body, taskTitle: task.taskTitle });
+    expect(res4.status).toBe(204);
+
+    let res5 = await request
+      .get(`/board/${board.boardTitle}`)
+      .set("Accept", "application/json")
+      .set("Token", `Bearer ${auth.genToken(user)}`)
+      .send(body);
+    let result5 = JSON.parse(res5.text);
+    expect(res5.status).toBe(200);
+    console.log(result5.tables);
+    expect(result5.tables).toStrictEqual([{ titleTable: "pepa", content: [] }]);
+
+    done();
+  });
 });
