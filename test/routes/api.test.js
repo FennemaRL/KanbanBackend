@@ -207,7 +207,6 @@ describe("user route verification", () => {
     done();
   });
 });
-
 describe("board route verification", () => {
   let user;
   let board;
@@ -296,9 +295,11 @@ describe("board route verification", () => {
     }).save();
 
     let res = await request
-      .delete(`/board/${board.boardTitle}`)
+      .delete(`/board`)
       .set("Accept", "application/json")
-      .set("Token", `Bearer ${auth.genToken(user)}`);
+      .set("Token", `Bearer ${auth.genToken(user)}`)
+      .send(board);
+
     let res2 = await request.get(`/user/${user.userName}`);
     let result = JSON.parse(res2.text);
     expect(res.status).toBe(204);
@@ -308,9 +309,10 @@ describe("board route verification", () => {
   });
   it("Delete an user board not saved ", async done => {
     let res = await request
-      .delete(`/board/${board.boardTitle}`)
+      .delete(`/board`)
       .set("Accept", "application/json")
-      .set("Token", `Bearer ${auth.genToken(user)}`);
+      .set("Token", `Bearer ${auth.genToken(user)}`)
+      .send(board);
 
     expect(res.status).toBe(204);
 
@@ -399,7 +401,7 @@ describe("board route verification", () => {
       .post("/board/table")
       .set("Accept", "application/json")
       .set("Token", `Bearer ${auth.genToken(user)}`)
-      .send({ ...board, tableTitle: "pepa" });
+      .send(body);
     let result2 = JSON.parse(res2.text);
     expect(res2.status).toBe(201);
     expect(result2.tables).toStrictEqual([{ titleTable: "pepa", content: [] }]);
@@ -408,8 +410,18 @@ describe("board route verification", () => {
       .delete("/board/table")
       .set("Accept", "application/json")
       .set("Token", `Bearer ${auth.genToken(user)}`)
-      .send({ ...board, tableTitle: "pepa" });
-    expect(res3.status).toBe(204);
+      .send(body);
+    expect(res3.status).toStrictEqual(204);
+
+    let res4 = await request
+      .get(`/board/${board.boardTitle}`)
+      .set("Accept", "application/json")
+      .set("Token", `Bearer ${auth.genToken(user)}`);
+    let result4 = JSON.parse(res4.text);
+    expect(result4.message).toBe(undefined);
+    expect(res4.status).toBe(200);
+    expect(result4.tables).toStrictEqual([]);
+
     done();
   });
   it("Delete an user table in an unsaved board", async done => {
@@ -652,7 +664,6 @@ describe("board route verification", () => {
       .send(body);
     let result5 = JSON.parse(res5.text);
     expect(res5.status).toBe(200);
-    console.log(result5.tables);
     expect(result5.tables).toStrictEqual([{ titleTable: "pepa", content: [] }]);
 
     done();

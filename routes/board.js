@@ -40,7 +40,7 @@ router.post("/", auth.isAuth, async (req, res) => {
 
 /*create table */
 
-router.post("/table/", auth.isAuth, async (req, res) => {
+router.post("/table", auth.isAuth, async (req, res) => {
   let newTableTitle = req.body.tableTitle;
   try {
     let board2Update = await _findBoard(req);
@@ -61,7 +61,7 @@ router.post("/table/", auth.isAuth, async (req, res) => {
 
 /*create task */
 
-router.post("/table/task/", auth.isAuth, async (req, res) => {
+router.post("/table/task", auth.isAuth, async (req, res) => {
   try {
     let task = req.body.task;
     let tableTitle = req.body.tableTitle;
@@ -102,11 +102,28 @@ const _findBoard = req => {
   return Board.findByTitle(boardTitle + "." + userName);
 };
 
-/*delete board */
-router.delete("/:boardTitle", auth.isAuth, async (req, res) => {
+/*delete table*/
+router.delete("/table", auth.isAuth, async (req, res) => {
   try {
     let userNamed = auth.getName(req.headers.token);
-    let titleb = req.params.boardTitle;
+    let titleBoard = req.body.boardTitle;
+    let tableTitle = req.body.tableTitle;
+
+    let query = {
+      title: titleBoard + "." + userNamed
+    };
+    let remove = { $pull: { tables: { titleTable: tableTitle } } };
+    await Board.updateOne(query, remove);
+    res.status(204).json({ message: "empty" });
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
+/*delete board */
+router.delete("/", auth.isAuth, async (req, res) => {
+  try {
+    let userNamed = auth.getName(req.headers.token);
+    let titleb = req.body.boardTitle;
     if (!titleb) throw new Error("board title is empty");
     await Board.deleteOne({ title: titleb + "." + userNamed });
     let query = {
@@ -119,29 +136,15 @@ router.delete("/:boardTitle", auth.isAuth, async (req, res) => {
     res.status(400).json({ message: err.message });
   }
 });
-/*delete table*/
-router.delete("/table", auth.isAuth, async (req, res) => {
-  try {
-    let titleBoard = req.body.boardTitle;
-    let titleTable = req.body.tableTitle;
-    let query = {
-      title: titleBoard
-    };
-    let remove = { $pull: { tables: titleTable } };
-    await Board.updateOne(query, remove);
-    res.status(204).json({ message: "empty" });
-  } catch (err) {
-    res.status(400).json({ message: err.message });
-  }
-});
 /*delete task*/
 router.delete("/table/task", auth.isAuth, async (req, res) => {
   try {
+    let userNamed = auth.getName(req.headers.token);
     let titleBoard = req.body.boardTitle;
     let titleTable = req.body.tableTitle;
     let titleTask = req.body.taskTitle;
     let query = {
-      title: titleBoard,
+      title: titleBoard + "." + userNamed,
       tables: titleTable
     };
     let remove = { $pull: { content: titleTask } };
