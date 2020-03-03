@@ -24,5 +24,5 @@ api rest en node
    |Accion          |    Requiere   |        Retorna |
    | ------------- | --------------- | --------------- |
    |.get(/:userName)    |               |         { userName: userName, boards: []} status:200 |
-   |.post(/register)      |   ({body:{userName:"", password:""}})  |  { userName: userName, boards: []} status:200|
+   |.post(/register)      |   ({body:{userName:"", password:""}})  |  { userName: userName, boards: []} status:201|
    |.post(/login)         |   ({body:{userName:"", password:""}})  |    {token : "Bearer ..."}    status:200
