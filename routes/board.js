@@ -22,7 +22,7 @@ router.get("/:boardTitle", auth.isAuth, async (req, res) => {
 router.post("/", auth.isAuth, async (req, res) => {
   try {
     let boardTitle = req.body.boardTitle;
-    if (!boardTitle) throw new Error("The board is empty");
+    _fieldCheck([[boardTitle, "boardTitle"]]);
     let userName = auth.getName(req.headers.token);
     let user2Update = await User.findByName(req);
     if (!user2Update.boards) user2Update.boards = [];
@@ -43,11 +43,9 @@ router.post("/", auth.isAuth, async (req, res) => {
 router.post("/table", auth.isAuth, async (req, res) => {
   let newTableTitle = req.body.tableTitle;
   try {
+    _fieldCheck([[newTableTitle, "tableTitle"]]);
     let board2Update = await _findBoard(req);
-    if (!board2Update)
-      throw new Error("couldn't find the board " + req.body.boardTitle);
-    if (!newTableTitle) throw new Error("The new table don't have title");
-    if (!board2Update.tables) board2Update.tables = [];
+    if (!board2Update) throw new Error("couldn't find the board board1");
     board2Update.tables.push({ titleTable: newTableTitle, content: [] });
     await board2Update.save();
     res.status(201).json({
@@ -78,11 +76,9 @@ router.post("/table/task", auth.isAuth, async (req, res) => {
       throw new Error(
         "The table dont belong to the board : " + _boardTitle(board2Update)
       );
-    let table = board2Update.tables[indextable];
 
-    if (!table.content) table.content = [];
-
-    table.content.push(task);
+    board2Update.tables[indextable].content.push(task);
+    board2Update.markModified("tables");
     await board2Update.save();
     res.status(201).json({
       boardTitle: _boardTitle(board2Update),
@@ -97,7 +93,7 @@ const _boardTitle = board => {
 };
 const _findBoard = req => {
   let boardTitle = req.params.boardTitle || req.body.boardTitle;
-  if (!boardTitle) throw new Error("The boardTitle is empty");
+  _fieldCheck([[boardTitle, "boardTitle"]]);
   let userName = auth.getName(req.headers.token);
   return Board.findByTitle(boardTitle + "." + userName);
 };
@@ -124,7 +120,7 @@ router.delete("/", auth.isAuth, async (req, res) => {
   try {
     let userNamed = auth.getName(req.headers.token);
     let titleb = req.body.boardTitle;
-    if (!titleb) throw new Error("board title is empty");
+    _fieldCheck([[titleb, "boardTitle"]]);
     await Board.deleteOne({ title: titleb + "." + userNamed });
     let query = {
       userName: userNamed
@@ -138,20 +134,42 @@ router.delete("/", auth.isAuth, async (req, res) => {
 });
 /*delete task*/
 router.delete("/table/task", auth.isAuth, async (req, res) => {
+  /*seguir aka */
   try {
-    let userNamed = auth.getName(req.headers.token);
-    let titleBoard = req.body.boardTitle;
     let titleTable = req.body.tableTitle;
-    let titleTask = req.body.taskTitle;
+    let tasktitle = req.body.taskTitle;
+    _fieldCheck([
+      [titleTable, "tableTitle"],
+      [tasktitle, "taskTitle"]
+    ]);
+
+    let board2update = await _findBoard(req);
+    let table = board2update.tables.find(
+      table => table.titleTable === titleTable
+    );
+    table.content = table.content.filter(task => !task.titleTask === tasktitle);
+    board2update.markModified("tables");
+    board2update.save();
+    /* investigar
     let query = {
       title: titleBoard + "." + userNamed,
-      tables: titleTable
+      tables: titleTables
     };
-    let remove = { $pull: { content: titleTask } };
-    await Board.updateOne(query, remove);
+    let remove = {
+      $pull: { tables: { content: { $elemMatch: { titleTask: tasktitle } } } }
+    };
+    await Board.updateOne(query, remove);*/
+    let board;
     res.status(204).json({ message: "empty" });
   } catch (err) {
+    console.error(err);
     res.status(400).json({ message: err.message });
   }
 });
+const _fieldCheck = list => {
+  /*first value second field name */
+  let emptyF = list.filter(f => !f[0]).map(f => f[1]);
+  if (emptyF.length === 1) throw new Error(`The field ${emptyF} is empty`);
+  if (emptyF.length > 1) throw new Error(`The fields ${emptyF} are empty`);
+};
 module.exports = router;

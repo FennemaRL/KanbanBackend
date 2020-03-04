@@ -217,7 +217,7 @@ describe("board route verification", () => {
     user = { userName: "pepa", password: "pepapass" };
     board = { boardTitle: "board1" };
     body = { ...board, tableTitle: "pepa" };
-    task = { title: "find a papa", description: " and just cook it " };
+    task = { titleTask: "find a papa", description: " and just cook it " };
     await new userModel(user).save();
 
     done();
@@ -231,7 +231,7 @@ describe("board route verification", () => {
     await boardModel.deleteMany({});
     request = supertest(app);
     done();
-  });
+  }); /*
   it("Get an user board successfully", async done => {
     await new boardModel({
       ...board,
@@ -283,7 +283,7 @@ describe("board route verification", () => {
       .set("Token", `Bearer ${auth.genToken(user)}`);
     let result = JSON.parse(res.text);
 
-    expect(result.message).toBe("The board is empty");
+    expect(result.message).toBe("The field boardTitle is empty");
     expect(res.status).toBe(400);
 
     done();
@@ -378,7 +378,7 @@ describe("board route verification", () => {
       .send({ ...board, tableTitle: "" });
     let result2 = JSON.parse(res2.text);
     expect(res2.status).toBe(400);
-    expect(result2.message).toBe("The new table don't have title");
+    expect(result2.message).toBe("The field tableTitle is empty");
     done();
   });
   it("Delete an user table in an saved board successfully", async done => {
@@ -488,11 +488,22 @@ describe("board route verification", () => {
       .set("Accept", "application/json")
       .set("Token", `Bearer ${auth.genToken(user)}`)
       .send({ ...body, task: task });
-
     let result3 = JSON.parse(res3.text);
     expect(result3.boardTitle).toBe(board.boardTitle);
     expect(res3.status).toBe(201);
     expect(result3.tables).toStrictEqual([
+      {
+        titleTable: "pepa",
+        content: [task]
+      }
+    ]);
+    let res4 = await request
+      .get(`/board/${board.boardTitle}`)
+      .set("Accept", "application/json")
+      .set("Token", `Bearer ${auth.genToken(user)}`);
+    let result4 = JSON.parse(res4.text);
+    expect(res4.status).toBe(200);
+    expect(result4.tables).toStrictEqual([
       {
         titleTable: "pepa",
         content: [task]
@@ -607,7 +618,7 @@ describe("board route verification", () => {
       "The table dont belong to the board : " + board.boardTitle
     );
     done();
-  });
+  });*/
   it("Delete an user task in an saved table successfully", async done => {
     await new boardModel({
       ...board,
@@ -639,7 +650,6 @@ describe("board route verification", () => {
       .set("Accept", "application/json")
       .set("Token", `Bearer ${auth.genToken(user)}`)
       .send({ ...body, task: task });
-
     let result3 = JSON.parse(res3.text);
     expect(result3.boardTitle).toBe(board.boardTitle);
     expect(res3.status).toBe(201);
@@ -654,15 +664,15 @@ describe("board route verification", () => {
       .delete("/board/table/task")
       .set("Token", `Bearer ${auth.genToken(user)}`)
       .set("Token", `Bearer ${auth.genToken(user)}`)
-      .send({ ...body, taskTitle: task.taskTitle });
+      .send({ ...body, taskTitle: task.titleTask });
     expect(res4.status).toBe(204);
 
     let res5 = await request
       .get(`/board/${board.boardTitle}`)
       .set("Accept", "application/json")
-      .set("Token", `Bearer ${auth.genToken(user)}`)
-      .send(body);
+      .set("Token", `Bearer ${auth.genToken(user)}`);
     let result5 = JSON.parse(res5.text);
+
     expect(res5.status).toBe(200);
     expect(result5.tables).toStrictEqual([{ titleTable: "pepa", content: [] }]);
 
