@@ -68,6 +68,7 @@ router.post("/table/task", auth.isAuth, async (req, res) => {
       (Object.entries(task).length === 0 && task.constructor === Object)
     )
       throw new Error("The tableTitle or the task are empty");
+    if (!task.titleTask) throw new Error("The task must have a titleTask");
     let board2Update = await _findBoard(req);
     let indextable = board2Update.tables.findIndex(
       t => t.titleTable === tableTitle
