@@ -137,19 +137,21 @@ router.delete("/table/task", auth.isAuth, async (req, res) => {
   /*seguir aka */
   try {
     let titleTable = req.body.tableTitle;
-    let tasktitle = req.body.taskTitle;
+    let tasktitle = req.body.titleTask;
     _fieldCheck([
       [titleTable, "tableTitle"],
-      [tasktitle, "taskTitle"]
+      [tasktitle, "titleTask"]
     ]);
 
     let board2update = await _findBoard(req);
     let table = board2update.tables.find(
       table => table.titleTable === titleTable
     );
-    table.content = table.content.filter(task => !task.titleTask === tasktitle);
+    table.content = table.content.filter(
+      task => !(task.titleTask === tasktitle)
+    );
     board2update.markModified("tables");
-    board2update.save();
+    await board2update.save();
     /* investigar
     let query = {
       title: titleBoard + "." + userNamed,
@@ -159,7 +161,7 @@ router.delete("/table/task", auth.isAuth, async (req, res) => {
       $pull: { tables: { content: { $elemMatch: { titleTask: tasktitle } } } }
     };
     await Board.updateOne(query, remove);*/
-    let board;
+
     res.status(204).json({ message: "empty" });
   } catch (err) {
     console.error(err);

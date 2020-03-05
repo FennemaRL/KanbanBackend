@@ -231,7 +231,7 @@ describe("board route verification", () => {
     await boardModel.deleteMany({});
     request = supertest(app);
     done();
-  }); /*
+  });
   it("Get an user board successfully", async done => {
     await new boardModel({
       ...board,
@@ -618,7 +618,7 @@ describe("board route verification", () => {
       "The table dont belong to the board : " + board.boardTitle
     );
     done();
-  });*/
+  });
   it("Delete an user task in an saved table successfully", async done => {
     await new boardModel({
       ...board,
@@ -659,12 +659,26 @@ describe("board route verification", () => {
         content: [task]
       }
     ]);
+    let res6 = await request
+      .post("/board/table/task/")
+      .set("Accept", "application/json")
+      .set("Token", `Bearer ${auth.genToken(user)}`)
+      .send({ ...body, task: { ...task, titleTask: "tete" } });
+    let result6 = JSON.parse(res6.text);
+    expect(result6.boardTitle).toBe(board.boardTitle);
+    expect(res6.status).toBe(201);
+    expect(result6.tables).toStrictEqual([
+      {
+        titleTable: "pepa",
+        content: [task, { ...task, titleTask: "tete" }]
+      }
+    ]);
 
     let res4 = await request
       .delete("/board/table/task")
       .set("Token", `Bearer ${auth.genToken(user)}`)
       .set("Token", `Bearer ${auth.genToken(user)}`)
-      .send({ ...body, taskTitle: task.titleTask });
+      .send({ ...body, titleTask: task.titleTask });
     expect(res4.status).toBe(204);
 
     let res5 = await request
@@ -674,7 +688,9 @@ describe("board route verification", () => {
     let result5 = JSON.parse(res5.text);
 
     expect(res5.status).toBe(200);
-    expect(result5.tables).toStrictEqual([{ titleTable: "pepa", content: [] }]);
+    expect(result5.tables).toStrictEqual([
+      { titleTable: "pepa", content: [{ ...task, titleTask: "tete" }] }
+    ]);
 
     done();
   });
