@@ -89,6 +89,42 @@ router.post("/table/task", auth.isAuth, async (req, res) => {
     res.status(400).json({ message: err.message });
   }
 });
+router.patch("/table/task", auth.isAuth, async (req, res) => {
+  try {
+    let boardf = await _findBoard(req);
+    let tasktitle = req.body.taskTitle;
+    let tabletFrom = req.body.tableTitleFrom;
+    let tabletTo = req.body.tableTitleTo;
+    let indx = req.body.indexTo;
+    _fieldCheck([
+      [tasktitle, "taskTitle"],
+      [tabletFrom, "tableTitleFrom"],
+      [tabletTo, "tableTitleTo"],
+      [indx >= 0, "indexTo"]
+    ]);
+    let oldOrder = JSON.parse(JSON.stringify(boardf.tables));
+    let newOrder = boardf.tables;
+    let tableFrom = newOrder.find(t => t.titleTable === tabletFrom);
+    let tableTo = newOrder.find(t => t.titleTable === tabletTo);
+    if (!tableFrom || !tableTo)
+      throw new Error("no se encontro la tableTitleFrom o tableTitleTo");
+    let task = tableFrom.content.splice(
+      tableFrom.content.findIndex(t => t.tasktitle === tasktitle),
+      1
+    )[0];
+    tableTo.content.splice(indx, 0, task);
+
+    boardf.markModified("tables");
+    await boardf.save();
+    res.status(200).json({
+      boardTitle: boardf.title,
+      oldTables: oldOrder,
+      tables: newOrder
+    });
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
 const _boardTitle = board => {
   return board.title.split(".")[0];
 };
@@ -165,7 +201,6 @@ router.delete("/table/task", auth.isAuth, async (req, res) => {
 
     res.status(204).json({ message: "empty" });
   } catch (err) {
-    console.error(err);
     res.status(400).json({ message: err.message });
   }
 });

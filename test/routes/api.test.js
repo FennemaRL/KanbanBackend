@@ -694,4 +694,117 @@ describe("board route verification", () => {
 
     done();
   });
+  it("Move(.patch) an user task in another table successfully", async done => {
+    await new boardModel({
+      ...board,
+      title: board.boardTitle + "." + user.userName
+    }).save();
+
+    let res = await request
+      .get(`/board/${board.boardTitle}`)
+      .set("Accept", "application/json")
+      .set("Token", `Bearer ${auth.genToken(user)}`);
+    let result = JSON.parse(res.text);
+
+    expect(result.message).toBe(undefined);
+    expect(res.status).toBe(200);
+    expect(result.title).toBe(board.boardTitle);
+    expect(result.tables).toStrictEqual([]);
+
+    let res2 = await request
+      .post("/board/table")
+      .set("Accept", "application/json")
+      .set("Token", `Bearer ${auth.genToken(user)}`)
+      .send(body);
+    let result2 = JSON.parse(res2.text);
+    expect(res2.status).toBe(201);
+    expect(result2.tables).toStrictEqual([{ titleTable: "pepa", content: [] }]);
+
+    let res3 = await request
+      .post("/board/table")
+      .set("Accept", "application/json")
+      .set("Token", `Bearer ${auth.genToken(user)}`)
+      .send({ ...body, tableTitle: "pepe" });
+    let result3 = JSON.parse(res3.text);
+    expect(res3.status).toBe(201);
+    expect(result3.tables).toStrictEqual([
+      { titleTable: "pepa", content: [] },
+      { titleTable: "pepe", content: [] }
+    ]);
+
+    let res4 = await request
+      .post("/board/table/task/")
+      .set("Accept", "application/json")
+      .set("Token", `Bearer ${auth.genToken(user)}`)
+      .send({ ...body, task: task });
+    let result4 = JSON.parse(res4.text);
+    expect(result4.boardTitle).toBe(board.boardTitle);
+    expect(res4.status).toBe(201);
+    expect(result4.tables).toStrictEqual([
+      { titleTable: "pepa", content: [task] },
+      { titleTable: "pepe", content: [] }
+    ]);
+    let res5 = await request
+      .post("/board/table/task/")
+      .set("Accept", "application/json")
+      .set("Token", `Bearer ${auth.genToken(user)}`)
+      .send({ ...body, task: { ...task, titleTask: "tete" } });
+    let result5 = JSON.parse(res5.text);
+    expect(result5.boardTitle).toBe(board.boardTitle);
+    expect(res5.status).toBe(201);
+    expect(result5.tables).toStrictEqual([
+      {
+        titleTable: "pepa",
+        content: [task, { ...task, titleTask: "tete" }]
+      },
+      { titleTable: "pepe", content: [] }
+    ]);
+
+    let res6 = await request
+      .patch("/board/table/task")
+      .set("Token", `Bearer ${auth.genToken(user)}`)
+      .set("Token", `Bearer ${auth.genToken(user)}`)
+      .send({
+        ...body,
+        taskTitle: task.titleTask,
+        tableTitleFrom: body.tableTitle,
+        tableTitleTo: "pepe",
+        indexTo: 0
+      });
+    let result6 = JSON.parse(res6.text);
+
+    expect(res6.status).toBe(200);
+
+    expect(result6.oldTables).toStrictEqual([
+      {
+        titleTable: "pepa",
+        content: [task, { ...task, titleTask: "tete" }]
+      },
+      { titleTable: "pepe", content: [] }
+    ]);
+    expect(result6.tables).toStrictEqual([
+      {
+        titleTable: "pepa",
+        content: [task]
+      },
+      { titleTable: "pepe", content: [{ ...task, titleTask: "tete" }] }
+    ]);
+
+    let res7 = await request
+      .get(`/board/${board.boardTitle}`)
+      .set("Accept", "application/json")
+      .set("Token", `Bearer ${auth.genToken(user)}`);
+    let result7 = JSON.parse(res7.text);
+
+    expect(res7.status).toBe(200);
+    expect(result7.tables).toStrictEqual([
+      {
+        titleTable: "pepa",
+        content: [task]
+      },
+      { titleTable: "pepe", content: [{ ...task, titleTask: "tete" }] }
+    ]);
+
+    done();
+  });
 });
