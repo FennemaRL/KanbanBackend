@@ -22,7 +22,7 @@ if (process.env.environment !== "test") {
   } catch (err) {
     console.log(err.message);
   }
-  let port = process.env.PORT || 3000;
+  let port = process.env.PORT || 3003;
   app.listen(port, () => console.log("server started"));
 }
 

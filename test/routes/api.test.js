@@ -274,6 +274,11 @@ describe("board route verification", () => {
     expect(res.status).toBe(201);
     expect(result.title).toBe(board.boardTitle);
 
+    let res2 = await request.get(`/user/${user.userName}`);
+    let result2 = JSON.parse(res2.text);
+    expect(res2.status).toBe(200);
+    expect(result2.boards).toStrictEqual([board.boardTitle]);
+
     done();
   });
   it("Add(.Post) an user board empty", async done => {

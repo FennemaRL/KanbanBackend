@@ -24,7 +24,7 @@ router.post("/", auth.isAuth, async (req, res) => {
     let boardTitle = req.body.boardTitle;
     _fieldCheck([[boardTitle, "boardTitle"]]);
     let userName = auth.getName(req.headers.token);
-    let user2Update = await User.findByName(req);
+    let user2Update = await User.findByName(userName);
     if (!user2Update.boards) user2Update.boards = [];
     user2Update.boards.push(boardTitle);
     await user2Update.save();
