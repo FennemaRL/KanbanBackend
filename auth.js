@@ -15,7 +15,10 @@ const genToken = user => {
 };
 
 const verify = token => jwt.verify(token, secret);
-const verifybM = token => jwt.verify(token, process.env.secretbm);
+const verifybM = token => {
+  let ttoken = token.split(" ")[1];
+  return jwt.verify(ttoken, process.env.secretbm).data === "Lucas";
+};
 const isAuth = (req, res, next) => {
   try {
     if (!req.headers.token) throw Error("no token");

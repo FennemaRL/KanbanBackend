@@ -15,7 +15,7 @@ router.get("/", async (req, res) => {
 router.post("/", async (req, res) => {
   try {
     let concert = req.body.concert;
-    if (auth.verifybM(req.headers.token).data !== "Lucas")
+    if (auth.verifybM(req.headers.token))
       throw new Error("u ain't lucas bro :(");
     if (!concert.place || !concert.date || !concert.eventName)
       throw new Error("place, eventName or date are empty");
