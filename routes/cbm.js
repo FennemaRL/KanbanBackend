@@ -7,7 +7,6 @@ router.get("/", async (req, res) => {
   try {
     let concert = await concertModel.findLatestConcerts();
 
-    console.log(concert);
     res.status(200).json({ concerts: concert });
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -18,8 +17,8 @@ router.post("/", async (req, res) => {
     let concert = req.body.concert;
     if (auth.verifybM(req.headers.token).data !== "Lucas")
       throw new Error("u ain't lucas bro :(");
-    if (!concert.place || !concert.date)
-      throw new Error("place or date are empty");
+    if (!concert.place || !concert.date || !concert.eventName)
+      throw new Error("place, eventName or date are empty");
     await new concertModel({ ...concert, date: new Date(concert.date) }).save();
     res.status(201).json(concert);
   } catch (err) {

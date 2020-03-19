@@ -5,6 +5,10 @@ const concertSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  eventName: {
+    type: String,
+    required: true
+  },
   date: {
     type: Date,
     required: true
