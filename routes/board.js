@@ -47,6 +47,8 @@ router.post("/table", auth.isAuth, async (req, res) => {
     let board2Update = await _findBoard(req);
     if (!board2Update) throw new Error("couldn't find the board board1");
     board2Update.tables.push({ titleTable: newTableTitle, content: [] });
+
+    board2Update.markModified("tables");
     await board2Update.save();
     res.status(201).json({
       boardTitle: _boardTitle(board2Update),
@@ -89,7 +91,10 @@ router.post("/table/task", auth.isAuth, async (req, res) => {
     res.status(400).json({ message: err.message });
   }
 });
-router.patch("/table/task", auth.isAuth, async (req, res) => {
+
+/*re order task */
+
+router.patch("/table/", auth.isAuth, async (req, res) => {
   try {
     let boardf = await _findBoard(req);
     let tasktitle = req.body.taskTitle;
@@ -107,7 +112,11 @@ router.patch("/table/task", auth.isAuth, async (req, res) => {
     let tableFrom = newOrder.find(t => t.titleTable === tabletFrom);
     let tableTo = newOrder.find(t => t.titleTable === tabletTo);
     if (!tableFrom || !tableTo)
-      throw new Error("no se encontro la tableTitleFrom o tableTitleTo");
+      throw new Error(
+        `no se encontro ${
+          tabletFrom === tabletTo ? tabletFrom : tabletFrom + " y " + tabletFrom
+        }`
+      );
     let task = tableFrom.content.splice(
       tableFrom.content.findIndex(t => t.tasktitle === tasktitle),
       1
@@ -120,6 +129,41 @@ router.patch("/table/task", auth.isAuth, async (req, res) => {
       boardTitle: boardf.title,
       oldTables: oldOrder,
       tables: newOrder
+    });
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
+
+/*modify task */
+
+router.patch("/table/task", auth.isAuth, async (req, res) => {
+  let board2Update = await _findBoard(req);
+  let task2Remove = req.body.taskTitleToRemove;
+  let newTask = req.body.newTask;
+  let titleTable = req.body.tableTitle;
+  try {
+    _fieldCheck([
+      [task2Remove, "taskTitleToRemove"],
+      [newTask, "newTask"],
+      [titleTable, "tableTitle"]
+    ]);
+    let table2modify = board2Update.tables.find(
+      t => t.titleTable === titleTable
+    );
+    let index2Replace = table2modify.content.findIndex(
+      task => task.titleTask === task2Remove
+    );
+    if (index2Replace === -1)
+      throw new Error("the task" + task.titleTask + " isn't find");
+    table2modify.content.splice(index2Replace, 1, newTask);
+
+    board2Update.markModified("tables");
+    await board2Update.save();
+
+    res.status(200).json({
+      boardTitle: _boardTitle(board2Update),
+      tables: board2Update.tables
     });
   } catch (err) {
     res.status(400).json({ message: err.message });
@@ -152,6 +196,7 @@ router.delete("/table", auth.isAuth, async (req, res) => {
     res.status(400).json({ message: err.message });
   }
 });
+
 /*delete board */
 router.delete("/", auth.isAuth, async (req, res) => {
   try {
