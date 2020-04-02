@@ -15,7 +15,9 @@ api rest en node
    |.post(/table/Task)         | ({body:{boardTitle:"",tableTitle:"", task:{}}})       |   {tables: [...,{ titleTable: titleTable, content[{task}]}], title: boardTitle} status:201 |
    |.delete(/:boardTitle)      |                                              |   {} status:204                          |
    |.delete(/table)            |    {body:{boardTitle:"",tableTitle:""}}      |   {} status:204                          |
-   |.delete(/table/task)       |    {body:{boardTitle:"",tableTitle:"", taskTitle:""}}| {} status:204                         |
+   |.delete(/table/task)       |    {body:{boardTitle:"",tableTitle:"", taskTitle:""}}| {} status:204                    |
+   |.patch(/table)             | {body:{boardTitle:"",tasktitle:"", tabletFrom :"", tabletTo :"", indexTo: int}} | {boardTitle:"", oldTables:[], tables:[]} status:200 |
+   |.patch(/table/task)        |  {body:{boardTitle:"", taskTitleToRemove:"", newTask:{}, tableTitle:""}} | {boardTitle:"", tables:[]} status:200|
    
                 
 ----
