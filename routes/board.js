@@ -97,12 +97,12 @@ router.post("/table/task", auth.isAuth, async (req, res) => {
 router.patch("/table/", auth.isAuth, async (req, res) => {
   try {
     let boardf = await _findBoard(req);
-    let tasktitle = req.body.taskTitle;
+    let tasktitle = req.body.titleTask;
     let tabletFrom = req.body.tableTitleFrom;
     let tabletTo = req.body.tableTitleTo;
     let indx = req.body.indexTo;
     _fieldCheck([
-      [tasktitle, "taskTitle"],
+      [tasktitle, "titleTask"],
       [tabletFrom, "tableTitleFrom"],
       [tabletTo, "tableTitleTo"],
       [indx >= 0, "indexTo"]
@@ -118,7 +118,7 @@ router.patch("/table/", auth.isAuth, async (req, res) => {
         }`
       );
     let task = tableFrom.content.splice(
-      tableFrom.content.findIndex(t => t.tasktitle === tasktitle),
+      tableFrom.content.findIndex(t => t.titleTask === tasktitle),
       1
     )[0];
     tableTo.content.splice(indx, 0, task);
@@ -126,7 +126,7 @@ router.patch("/table/", auth.isAuth, async (req, res) => {
     boardf.markModified("tables");
     await boardf.save();
     res.status(200).json({
-      boardTitle: boardf.title,
+      boardTitle: _boardTitle(boardf),
       oldTables: oldOrder,
       tables: newOrder
     });
