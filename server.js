@@ -17,13 +17,13 @@ if (process.env.environment !== "test") {
   try {
     mongoose.connect(uri, {
       useNewUrlParser: true,
-      useUnifiedTopology: true
+      useUnifiedTopology: true,
     });
   } catch (err) {
     console.log(err.message);
   }
   let port = process.env.PORT || 3003;
-  app.listen(port, () => console.log("server started"));
+  app.listen(port, () => console.log("server started "));
 }
 
 module.exports = app;

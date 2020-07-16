@@ -18,7 +18,7 @@ router.get("/:userName", async (req, res) => {
 router.post("/register", async (req, res) => {
   let user = new User({
     userName: req.body.userName,
-    password: req.body.password
+    password: req.body.password,
   });
   try {
     let newUser = await user.save();
@@ -79,7 +79,7 @@ router.patch("/neworder", auth.isAuth, async (req, res) => {
     res.status(200).json({
       userName: userName2Find,
       oldOrder: oldOrderboards,
-      newOrder: boardReOrder
+      newOrder: boardReOrder,
     });
   } catch (err) {
     res.status(400).json({ message: err.message });

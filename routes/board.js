@@ -29,7 +29,7 @@ router.post("/", auth.isAuth, async (req, res) => {
     user2Update.boards.push(boardTitle);
     await user2Update.save();
     let boardToCreate = new Board({
-      title: boardTitle + "." + userName
+      title: boardTitle + "." + userName,
     });
     await boardToCreate.save();
     res.status(201).json({ tables: [], title: boardTitle });
@@ -52,7 +52,7 @@ router.post("/table", auth.isAuth, async (req, res) => {
     await board2Update.save();
     res.status(201).json({
       boardTitle: _boardTitle(board2Update),
-      tables: board2Update.tables
+      tables: board2Update.tables,
     });
   } catch (err) {
     res.status(400).json({ message: err.message });
@@ -70,10 +70,10 @@ router.post("/table/task", auth.isAuth, async (req, res) => {
       (Object.entries(task).length === 0 && task.constructor === Object)
     )
       throw new Error("The tableTitle or the task are empty");
-    if (!task.titleTask) throw new Error("The task must have a titleTask");
+    if (!task.taskTitle) throw new Error("The task must have a taskTitle");
     let board2Update = await _findBoard(req);
     let indextable = board2Update.tables.findIndex(
-      t => t.titleTable === tableTitle
+      (t) => t.titleTable === tableTitle
     );
     if (indextable === -1)
       throw new Error(
@@ -85,7 +85,7 @@ router.post("/table/task", auth.isAuth, async (req, res) => {
     await board2Update.save();
     res.status(201).json({
       boardTitle: _boardTitle(board2Update),
-      tables: board2Update.tables
+      tables: board2Update.tables,
     });
   } catch (err) {
     res.status(400).json({ message: err.message });
@@ -97,20 +97,20 @@ router.post("/table/task", auth.isAuth, async (req, res) => {
 router.patch("/table/", auth.isAuth, async (req, res) => {
   try {
     let boardf = await _findBoard(req);
-    let tasktitle = req.body.titleTask;
+    let taskTitle = req.body.taskTitle;
     let tabletFrom = req.body.tableTitleFrom;
     let tabletTo = req.body.tableTitleTo;
     let indx = req.body.indexTo;
     _fieldCheck([
-      [tasktitle, "titleTask"],
+      [taskTitle, "taskTitle"],
       [tabletFrom, "tableTitleFrom"],
       [tabletTo, "tableTitleTo"],
-      [indx >= 0, "indexTo"]
+      [indx >= 0, "indexTo"],
     ]);
     let oldOrder = JSON.parse(JSON.stringify(boardf.tables));
     let newOrder = boardf.tables;
-    let tableFrom = newOrder.find(t => t.titleTable === tabletFrom);
-    let tableTo = newOrder.find(t => t.titleTable === tabletTo);
+    let tableFrom = newOrder.find((t) => t.titleTable === tabletFrom);
+    let tableTo = newOrder.find((t) => t.titleTable === tabletTo);
     if (!tableFrom || !tableTo)
       throw new Error(
         `no se encontro ${
@@ -118,7 +118,7 @@ router.patch("/table/", auth.isAuth, async (req, res) => {
         }`
       );
     let task = tableFrom.content.splice(
-      tableFrom.content.findIndex(t => t.titleTask === tasktitle),
+      tableFrom.content.findIndex((t) => t.taskTitle === taskTitle),
       1
     )[0];
     tableTo.content.splice(indx, 0, task);
@@ -128,7 +128,7 @@ router.patch("/table/", auth.isAuth, async (req, res) => {
     res.status(200).json({
       boardTitle: _boardTitle(boardf),
       oldTables: oldOrder,
-      tables: newOrder
+      tables: newOrder,
     });
   } catch (err) {
     res.status(400).json({ message: err.message });
@@ -146,16 +146,16 @@ router.patch("/table/task", auth.isAuth, async (req, res) => {
     _fieldCheck([
       [task2Remove, "taskTitleToRemove"],
       [newTask, "newTask"],
-      [titleTable, "tableTitle"]
+      [titleTable, "tableTitle"],
     ]);
     let table2modify = board2Update.tables.find(
-      t => t.titleTable === titleTable
+      (t) => t.titleTable === titleTable
     );
     let index2Replace = table2modify.content.findIndex(
-      task => task.titleTask === task2Remove
+      (task) => task.taskTitle === task2Remove
     );
     if (index2Replace === -1)
-      throw new Error("the task" + task.titleTask + " isn't find");
+      throw new Error("the task" + task.taskTitle + " isn't find");
     table2modify.content.splice(index2Replace, 1, newTask);
 
     board2Update.markModified("tables");
@@ -163,16 +163,16 @@ router.patch("/table/task", auth.isAuth, async (req, res) => {
 
     res.status(200).json({
       boardTitle: _boardTitle(board2Update),
-      tables: board2Update.tables
+      tables: board2Update.tables,
     });
   } catch (err) {
     res.status(400).json({ message: err.message });
   }
 });
-const _boardTitle = board => {
+const _boardTitle = (board) => {
   return board.title.split(".")[0];
 };
-const _findBoard = req => {
+const _findBoard = (req) => {
   let boardTitle = req.params.boardTitle || req.body.boardTitle;
   _fieldCheck([[boardTitle, "boardTitle"]]);
   let userName = auth.getName(req.headers.token);
@@ -187,7 +187,7 @@ router.delete("/table", auth.isAuth, async (req, res) => {
     let tableTitle = req.body.tableTitle;
 
     let query = {
-      title: titleBoard + "." + userNamed
+      title: titleBoard + "." + userNamed,
     };
     let remove = { $pull: { tables: { titleTable: tableTitle } } };
     await Board.updateOne(query, remove);
@@ -205,7 +205,7 @@ router.delete("/", auth.isAuth, async (req, res) => {
     _fieldCheck([[titleb, "boardTitle"]]);
     await Board.deleteOne({ title: titleb + "." + userNamed });
     let query = {
-      userName: userNamed
+      userName: userNamed,
     };
     let remove = { $pull: { boards: titleb } };
     await User.updateOne(query, remove);
@@ -219,18 +219,18 @@ router.delete("/table/task", auth.isAuth, async (req, res) => {
   /*seguir aka */
   try {
     let titleTable = req.body.tableTitle;
-    let tasktitle = req.body.titleTask;
+    let tasktitle = req.body.taskTitle;
     _fieldCheck([
       [titleTable, "tableTitle"],
-      [tasktitle, "titleTask"]
+      [tasktitle, "taskTitle"],
     ]);
 
     let board2update = await _findBoard(req);
     let table = board2update.tables.find(
-      table => table.titleTable === titleTable
+      (table) => table.titleTable === titleTable
     );
     table.content = table.content.filter(
-      task => !(task.titleTask === tasktitle)
+      (task) => !(task.taskTitle === tasktitle)
     );
     board2update.markModified("tables");
     await board2update.save();
@@ -249,9 +249,9 @@ router.delete("/table/task", auth.isAuth, async (req, res) => {
     res.status(400).json({ message: err.message });
   }
 });
-const _fieldCheck = list => {
+const _fieldCheck = (list) => {
   /*first value second field name */
-  let emptyF = list.filter(f => !f[0]).map(f => f[1]);
+  let emptyF = list.filter((f) => !f[0]).map((f) => f[1]);
   if (emptyF.length === 1) throw new Error(`The field ${emptyF} is empty`);
   if (emptyF.length > 1) throw new Error(`The fields ${emptyF} are empty`);
 };
