@@ -2,16 +2,19 @@ const express = require("express");
 const app = express();
 var cors = require("cors");
 const mongoose = require("mongoose");
-const userRouter = require("./routes/user");
-const boardRouter = require("./routes/board");
-const bmrouter = require("./routes/cbm");
+const userRoute = require("./routes/user");
+const boardRoute = require("./routes/board");
+const bmRoute = require("./routes/cbm");
+const mailRoute = require("./routes/sendMail");
+
 if (process.env.enviroment !== "production") require("dotenv").config();
 
 app.use(express.json());
 app.use(cors());
-app.use("/user", userRouter);
-app.use("/board", boardRouter);
-app.use("/cbm", bmrouter);
+app.use("/user", userRoute);
+app.use("/board", boardRoute);
+app.use("/cbm", bmRoute);
+app.use("/sendMail", mailRoute)
 if (process.env.environment !== "test") {
   const uri = process.env.URIMONGO;
   try {
