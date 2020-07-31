@@ -8,13 +8,13 @@ const auth = require("auth");
 const uri = process.env.URIMONGOTEST;
 const db = mongoose.connection;
 mongoose.connect(uri, { useNewUrlParser: true, useUnifiedTopology: true });
-db.on("error connection", error => console.error(error));
+db.on("error connection", (error) => console.error(error));
 db.once("open", () => console.log("conected 2 db"));
 
 describe("user route verification", () => {
   let user;
   let request;
-  beforeAll(async done => {
+  beforeAll(async (done) => {
     await userModel.deleteMany({});
     user = { userName: "pepe", password: "peppa" };
     done();
@@ -24,15 +24,15 @@ describe("user route verification", () => {
     request = supertest(app);
     userModel.updateOne({ userName: user.userName }, { boards: [] });
   });
-  afterAll(async done => {
+  afterAll(async (done) => {
     done();
   });
-  afterEach(async done => {
+  afterEach(async (done) => {
     await userModel.deleteMany({});
     done();
   });
 
-  it("Register user successfully", async done => {
+  it("Register user successfully", async (done) => {
     let res = await request
       .post("/user/register")
       .set("Accept", "application/json")
@@ -44,7 +44,7 @@ describe("user route verification", () => {
     expect(result.userName).toBe(user.userName);
     done();
   });
-  it("Register 2 users with the same username", async done => {
+  it("Register 2 users with the same username", async (done) => {
     let res = await request
       .post("/user/register")
       .set("Accept", "application/json")
@@ -66,7 +66,7 @@ describe("user route verification", () => {
 
     done();
   });
-  it("Register user withOut name & pass", async done => {
+  it("Register user withOut name & pass", async (done) => {
     let res = await request
       .post("/user/register")
       .set("Accept", "application/json")
@@ -76,7 +76,7 @@ describe("user route verification", () => {
     expect(res.status).toBe(400);
     done();
   });
-  it("Login user successfully", async done => {
+  it("Login user successfully", async (done) => {
     await new userModel(user).save();
 
     let res = await request
@@ -91,7 +91,7 @@ describe("user route verification", () => {
 
     done();
   });
-  it("Login an user not register", async done => {
+  it("Login an user not register", async (done) => {
     let res = await request
       .post("/user/login")
       .set("Accept", "application/json")
@@ -104,7 +104,7 @@ describe("user route verification", () => {
 
     done();
   });
-  it("Login an user with wrong password ", async done => {
+  it("Login an user with wrong password ", async (done) => {
     await new userModel(user).save();
 
     let res = await request
@@ -119,7 +119,7 @@ describe("user route verification", () => {
 
     done();
   });
-  it("Login an user withOut name & pass", async done => {
+  it("Login an user withOut name & pass", async (done) => {
     await new userModel(user).save();
 
     let res = await request
@@ -133,7 +133,7 @@ describe("user route verification", () => {
 
     done();
   });
-  it("NewOrder of an user board list successfully", async done => {
+  it("NewOrder of an user board list successfully", async (done) => {
     await new userModel({ ...user, boards: ["pepa", "pape", "bug"] }).save();
 
     let res = await request
@@ -150,7 +150,7 @@ describe("user route verification", () => {
     expect(result.newOrder).toStrictEqual(["bug", "pape", "pepa"]);
     done();
   });
-  it("NewOrder of an user board with less elements", async done => {
+  it("NewOrder of an user board with less elements", async (done) => {
     await new userModel({ ...user, boards: ["pepa", "pape", "bug"] }).save();
 
     let res = await request
@@ -164,7 +164,7 @@ describe("user route verification", () => {
     expect(result.message).toBe("The lists don't contains the same elements");
     done();
   });
-  it("NewOrder of an user board with different elements", async done => {
+  it("NewOrder of an user board with different elements", async (done) => {
     await new userModel({ ...user, boards: ["pepa", "pape", "bug"] }).save();
 
     let res = await request
@@ -178,7 +178,7 @@ describe("user route verification", () => {
     expect(result.message).toBe("The lists don't contains the same elements");
     done();
   });
-  it("NewOrder of an user board list withOut token", async done => {
+  it("NewOrder of an user board list withOut token", async (done) => {
     await new userModel({ ...user, boards: ["pepa", "pape", "bug"] }).save();
 
     let res = await request
@@ -190,7 +190,7 @@ describe("user route verification", () => {
     expect(res.status).toBe(401);
     done();
   });
-  it("NewOrder of an user board list with token expired", async done => {
+  it("NewOrder of an user board list with token expired", async (done) => {
     await new userModel({ ...user, boards: ["pepa", "pape", "bug"] }).save();
 
     let res = await request
@@ -213,29 +213,29 @@ describe("board route verification", () => {
   let request;
   let task;
   let body;
-  beforeAll(async done => {
+  beforeAll(async (done) => {
     user = { userName: "pepa", password: "pepapass" };
     board = { boardTitle: "board1" };
     body = { ...board, tableTitle: "pepa" };
-    task = { titleTask: "find a papa", description: " and just cook it " };
+    task = { taskTitle: "find a papa", description: " and just cook it " };
     await new userModel(user).save();
 
     done();
   });
-  afterAll(async done => {
+  afterAll(async (done) => {
     await boardModel.deleteMany({});
     await userModel.deleteMany({});
     done();
   });
-  beforeEach(async done => {
+  beforeEach(async (done) => {
     await boardModel.deleteMany({});
     request = supertest(app);
     done();
   });
-  it("Get an user board successfully", async done => {
+  it("Get an user board successfully", async (done) => {
     await new boardModel({
       ...board,
-      title: board.boardTitle + "." + user.userName
+      title: board.boardTitle + "." + user.userName,
     }).save();
 
     let res = await request
@@ -250,7 +250,7 @@ describe("board route verification", () => {
 
     done();
   });
-  it("Get an user board not found", async done => {
+  it("Get an user board not found", async (done) => {
     let res = await request
       .get(`/board/${board.boardTitle}`)
       .set("Accept", "application/json")
@@ -262,7 +262,7 @@ describe("board route verification", () => {
 
     done();
   });
-  it("Add(.Post) an user board successfully", async done => {
+  it("Add(.Post) an user board successfully", async (done) => {
     let res = await request
       .post("/board")
       .set("Accept", "application/json")
@@ -281,7 +281,7 @@ describe("board route verification", () => {
 
     done();
   });
-  it("Add(.Post) an user board empty", async done => {
+  it("Add(.Post) an user board empty", async (done) => {
     let res = await request
       .post("/board")
       .set("Accept", "application/json")
@@ -293,10 +293,10 @@ describe("board route verification", () => {
 
     done();
   });
-  it("Delete an user board successfully", async done => {
+  it("Delete an user board successfully", async (done) => {
     await new boardModel({
       ...board,
-      title: board.boardTitle + "." + user.userName
+      title: board.boardTitle + "." + user.userName,
     }).save();
 
     let res = await request
@@ -312,7 +312,7 @@ describe("board route verification", () => {
     expect(result.boards).toStrictEqual([]);
     done();
   });
-  it("Delete an user board not saved ", async done => {
+  it("Delete an user board not saved ", async (done) => {
     let res = await request
       .delete(`/board`)
       .set("Accept", "application/json")
@@ -323,10 +323,10 @@ describe("board route verification", () => {
 
     done();
   });
-  it("Add(.Post) an user table in an saved board successfully", async done => {
+  it("Add(.Post) an user table in an saved board successfully", async (done) => {
     await new boardModel({
       ...board,
-      title: board.boardTitle + "." + user.userName
+      title: board.boardTitle + "." + user.userName,
     }).save();
 
     let res = await request
@@ -349,7 +349,7 @@ describe("board route verification", () => {
     expect(result2.tables).toStrictEqual([{ titleTable: "pepa", content: [] }]);
     done();
   });
-  it("Add(.Post) an user table in an not saved board ", async done => {
+  it("Add(.Post) an user table in an not saved board ", async (done) => {
     let res2 = await request
       .post("/board/table")
       .set("Accept", "application/json")
@@ -360,10 +360,10 @@ describe("board route verification", () => {
     expect(result2.message).toBe("couldn't find the board " + board.boardTitle);
     done();
   });
-  it("Add(.Post) an user table without title in an saved board ", async done => {
+  it("Add(.Post) an user table without title in an saved board ", async (done) => {
     await new boardModel({
       ...board,
-      title: board.boardTitle + "." + user.userName
+      title: board.boardTitle + "." + user.userName,
     }).save();
 
     let res = await request
@@ -386,10 +386,10 @@ describe("board route verification", () => {
     expect(result2.message).toBe("The field tableTitle is empty");
     done();
   });
-  it("Delete an user table in an saved board successfully", async done => {
+  it("Delete an user table in an saved board successfully", async (done) => {
     await new boardModel({
       ...board,
-      title: board.boardTitle + "." + user.userName
+      title: board.boardTitle + "." + user.userName,
     }).save();
 
     let res = await request
@@ -429,10 +429,10 @@ describe("board route verification", () => {
 
     done();
   });
-  it("Delete an user table in an unsaved board", async done => {
+  it("Delete an user table in an unsaved board", async (done) => {
     await new boardModel({
       ...board,
-      title: board.boardTitle + "." + user.userName
+      title: board.boardTitle + "." + user.userName,
     }).save();
 
     let res = await request
@@ -462,10 +462,10 @@ describe("board route verification", () => {
     expect(res3.status).toBe(204);
     done();
   });
-  it("Add(.Post) an user task in an saved table successfully", async done => {
+  it("Add(.Post) an user task in an saved table successfully", async (done) => {
     await new boardModel({
       ...board,
-      title: board.boardTitle + "." + user.userName
+      title: board.boardTitle + "." + user.userName,
     }).save();
 
     let res = await request
@@ -499,8 +499,8 @@ describe("board route verification", () => {
     expect(result3.tables).toStrictEqual([
       {
         titleTable: "pepa",
-        content: [task]
-      }
+        content: [task],
+      },
     ]);
     let res4 = await request
       .get(`/board/${board.boardTitle}`)
@@ -511,15 +511,15 @@ describe("board route verification", () => {
     expect(result4.tables).toStrictEqual([
       {
         titleTable: "pepa",
-        content: [task]
-      }
+        content: [task],
+      },
     ]);
     done();
   });
-  it("Add(.Post) an user task empty in an saved table", async done => {
+  it("Add(.Post) an user task empty in an saved table", async (done) => {
     await new boardModel({
       ...board,
-      title: board.boardTitle + "." + user.userName
+      title: board.boardTitle + "." + user.userName,
     }).save();
 
     let res = await request
@@ -555,10 +555,10 @@ describe("board route verification", () => {
     );
     done();
   });
-  it("Add(.Post) an user task in an nameless table ", async done => {
+  it("Add(.Post) an user task in an nameless table ", async (done) => {
     await new boardModel({
       ...board,
-      title: board.boardTitle + "." + user.userName
+      title: board.boardTitle + "." + user.userName,
     }).save();
 
     let res = await request
@@ -592,10 +592,10 @@ describe("board route verification", () => {
     expect(result3.message).toStrictEqual("The field tableTitle is empty");
     done();
   });
-  it("Add(.Post) an user task in an table dont save", async done => {
+  it("Add(.Post) an user task in an table dont save", async (done) => {
     await new boardModel({
       ...board,
-      title: board.boardTitle + "." + user.userName
+      title: board.boardTitle + "." + user.userName,
     }).save();
 
     let res = await request
@@ -622,10 +622,10 @@ describe("board route verification", () => {
     );
     done();
   });
-  it("Delete an user task in an saved table successfully", async done => {
+  it("Delete an user task in an saved table successfully", async (done) => {
     await new boardModel({
       ...board,
-      title: board.boardTitle + "." + user.userName
+      title: board.boardTitle + "." + user.userName,
     }).save();
 
     let res = await request
@@ -659,29 +659,29 @@ describe("board route verification", () => {
     expect(result3.tables).toStrictEqual([
       {
         titleTable: "pepa",
-        content: [task]
-      }
+        content: [task],
+      },
     ]);
     let res6 = await request
       .post("/board/table/task")
       .set("Accept", "application/json")
       .set("Token", `Bearer ${auth.genToken(user)}`)
-      .send({ ...body, task: { ...task, titleTask: "tete" } });
+      .send({ ...body, task: { ...task, taskTitle: "tete" } });
     let result6 = JSON.parse(res6.text);
     expect(result6.boardTitle).toBe(board.boardTitle);
     expect(res6.status).toBe(201);
     expect(result6.tables).toStrictEqual([
       {
         titleTable: "pepa",
-        content: [task, { ...task, titleTask: "tete" }]
-      }
+        content: [task, { ...task, taskTitle: "tete" }],
+      },
     ]);
 
     let res4 = await request
       .delete("/board/table/task")
       .set("Token", `Bearer ${auth.genToken(user)}`)
       .set("Token", `Bearer ${auth.genToken(user)}`)
-      .send({ ...body, titleTask: task.titleTask });
+      .send({ ...body, taskTitle: task.taskTitle });
     expect(res4.status).toBe(204);
 
     let res5 = await request
@@ -692,15 +692,15 @@ describe("board route verification", () => {
 
     expect(res5.status).toBe(200);
     expect(result5.tables).toStrictEqual([
-      { titleTable: "pepa", content: [{ ...task, titleTask: "tete" }] }
+      { titleTable: "pepa", content: [{ ...task, taskTitle: "tete" }] },
     ]);
 
     done();
   });
-  it("Move(.patch /table) an user task in another table successfully", async done => {
+  it("Move(.patch /table) an user task in another table successfully", async (done) => {
     await new boardModel({
       ...board,
-      title: board.boardTitle + "." + user.userName
+      title: board.boardTitle + "." + user.userName,
     }).save();
 
     let res = await request
@@ -732,7 +732,7 @@ describe("board route verification", () => {
     expect(res3.status).toBe(201);
     expect(result3.tables).toStrictEqual([
       { titleTable: "pepa", content: [] },
-      { titleTable: "pepe", content: [] }
+      { titleTable: "pepe", content: [] },
     ]);
 
     let res4 = await request
@@ -745,22 +745,22 @@ describe("board route verification", () => {
     expect(res4.status).toBe(201);
     expect(result4.tables).toStrictEqual([
       { titleTable: "pepa", content: [task] },
-      { titleTable: "pepe", content: [] }
+      { titleTable: "pepe", content: [] },
     ]);
     let res5 = await request
       .post("/board/table/task")
       .set("Accept", "application/json")
       .set("Token", `Bearer ${auth.genToken(user)}`)
-      .send({ ...body, task: { ...task, titleTask: "tete" } });
+      .send({ ...body, task: { ...task, taskTitle: "tete" } });
     let result5 = JSON.parse(res5.text);
     expect(result5.boardTitle).toBe(board.boardTitle);
     expect(res5.status).toBe(201);
     expect(result5.tables).toStrictEqual([
       {
         titleTable: "pepa",
-        content: [task, { ...task, titleTask: "tete" }]
+        content: [task, { ...task, taskTitle: "tete" }],
       },
-      { titleTable: "pepe", content: [] }
+      { titleTable: "pepe", content: [] },
     ]);
 
     let res6 = await request
@@ -769,10 +769,10 @@ describe("board route verification", () => {
       .set("Token", `Bearer ${auth.genToken(user)}`)
       .send({
         ...body,
-        titleTask: "tete",
+        taskTitle: "tete",
         tableTitleFrom: body.tableTitle,
         tableTitleTo: "pepe",
-        indexTo: 0
+        indexTo: 0,
       });
     let result6 = JSON.parse(res6.text);
 
@@ -781,16 +781,16 @@ describe("board route verification", () => {
     expect(result6.oldTables).toStrictEqual([
       {
         titleTable: "pepa",
-        content: [task, { ...task, titleTask: "tete" }]
+        content: [task, { ...task, taskTitle: "tete" }],
       },
-      { titleTable: "pepe", content: [] }
+      { titleTable: "pepe", content: [] },
     ]);
     expect(result6.tables).toStrictEqual([
       {
         titleTable: "pepa",
-        content: [task]
+        content: [task],
       },
-      { titleTable: "pepe", content: [{ ...task, titleTask: "tete" }] }
+      { titleTable: "pepe", content: [{ ...task, taskTitle: "tete" }] },
     ]);
 
     let res7 = await request
@@ -803,17 +803,17 @@ describe("board route verification", () => {
     expect(result7.tables).toStrictEqual([
       {
         titleTable: "pepa",
-        content: [task]
+        content: [task],
       },
-      { titleTable: "pepe", content: [{ ...task, titleTask: "tete" }] }
+      { titleTable: "pepe", content: [{ ...task, taskTitle: "tete" }] },
     ]);
 
     done();
   });
-  it("Edit (.patch /table/task) an user task successfully", async done => {
+  it("Edit (.patch /table/task) an user task successfully", async (done) => {
     await new boardModel({
       ...board,
-      title: board.boardTitle + "." + user.userName
+      title: board.boardTitle + "." + user.userName,
     }).save();
 
     let res = await request
@@ -845,7 +845,7 @@ describe("board route verification", () => {
     expect(res3.status).toBe(201);
     expect(result3.tables).toStrictEqual([
       { titleTable: "pepa", content: [] },
-      { titleTable: "pepe", content: [] }
+      { titleTable: "pepe", content: [] },
     ]);
 
     let res4 = await request
@@ -858,7 +858,7 @@ describe("board route verification", () => {
     expect(res4.status).toBe(201);
     expect(result4.tables).toStrictEqual([
       { titleTable: "pepa", content: [task] },
-      { titleTable: "pepe", content: [] }
+      { titleTable: "pepe", content: [] },
     ]);
 
     let res5 = await request
@@ -872,7 +872,7 @@ describe("board route verification", () => {
     expect(res5.status).toBe(201);
     expect(result5.tables).toStrictEqual([
       { titleTable: "pepa", content: [task, { ...task, taskTitle: "3" }] },
-      { titleTable: "pepe", content: [] }
+      { titleTable: "pepe", content: [] },
     ]);
 
     let res6 = await request
@@ -881,8 +881,8 @@ describe("board route verification", () => {
       .set("Token", `Bearer ${auth.genToken(user)}`)
       .send({
         ...body,
-        taskTitleToRemove: task.titleTask,
-        newTask: { ...task, taskTitle: "1" }
+        taskTitleToRemove: task.taskTitle,
+        newTask: { ...task, taskTitle: "1" },
       });
     let result6 = JSON.parse(res6.text);
     expect(res6.status).toBe(200);
@@ -891,10 +891,10 @@ describe("board route verification", () => {
         titleTable: "pepa",
         content: [
           { ...task, taskTitle: "1" },
-          { ...task, taskTitle: "3" }
-        ]
+          { ...task, taskTitle: "3" },
+        ],
       },
-      { titleTable: "pepe", content: [] }
+      { titleTable: "pepe", content: [] },
     ]);
 
     let res7 = await request
@@ -911,18 +911,18 @@ describe("board route verification", () => {
         titleTable: "pepa",
         content: [
           { ...task, taskTitle: "1" },
-          { ...task, taskTitle: "3" }
-        ]
+          { ...task, taskTitle: "3" },
+        ],
       },
-      { titleTable: "pepe", content: [] }
+      { titleTable: "pepe", content: [] },
     ]);
     done();
   });
   /*miss bad cases */
-  it("Edit (.patch /table/task) an user task after move it to other table  successfully:error case", async done => {
+  it("Edit (.patch /table/task) an user task after move it to other table  successfully:error case", async (done) => {
     await new boardModel({
       ...board,
-      title: board.boardTitle + "." + user.userName
+      title: board.boardTitle + "." + user.userName,
     }).save();
 
     let res = await request
@@ -954,7 +954,7 @@ describe("board route verification", () => {
     expect(res3.status).toBe(201);
     expect(result3.tables).toStrictEqual([
       { titleTable: "pepa", content: [] },
-      { titleTable: "pepe", content: [] }
+      { titleTable: "pepe", content: [] },
     ]);
 
     let res4 = await request
@@ -967,14 +967,14 @@ describe("board route verification", () => {
     expect(res4.status).toBe(201);
     expect(result4.tables).toStrictEqual([
       { titleTable: "pepa", content: [task] },
-      { titleTable: "pepe", content: [] }
+      { titleTable: "pepe", content: [] },
     ]);
 
     let res5 = await request
       .post("/board/table/task")
       .set("Accept", "application/json")
       .set("Token", `Bearer ${auth.genToken(user)}`)
-      .send({ ...body, task: { ...task, titleTask: "3" } });
+      .send({ ...body, task: { ...task, taskTitle: "3" } });
 
     let result5 = JSON.parse(res5.text);
     expect(result5.boardTitle).toBe(board.boardTitle);
@@ -982,9 +982,9 @@ describe("board route verification", () => {
     expect(result5.tables).toStrictEqual([
       {
         titleTable: "pepa",
-        content: [task, { description: task.description, titleTask: "3" }]
+        content: [task, { description: task.description, taskTitle: "3" }],
       },
-      { titleTable: "pepe", content: [] }
+      { titleTable: "pepe", content: [] },
     ]);
 
     let res6 = await request
@@ -993,10 +993,10 @@ describe("board route verification", () => {
       .set("Token", `Bearer ${auth.genToken(user)}`)
       .send({
         ...body,
-        titleTask: task.titleTask,
+        taskTitle: task.taskTitle,
         tableTitleFrom: body.tableTitle,
         tableTitleTo: "pepe",
-        indexTo: 0
+        indexTo: 0,
       });
     let result6 = JSON.parse(res6.text);
     expect(result6.boardTitle).toBe(board.boardTitle);
@@ -1004,9 +1004,9 @@ describe("board route verification", () => {
     expect(result6.tables).toStrictEqual([
       {
         titleTable: "pepa",
-        content: [{ description: task.description, titleTask: "3" }]
+        content: [{ description: task.description, taskTitle: "3" }],
       },
-      { titleTable: "pepe", content: [task] }
+      { titleTable: "pepe", content: [task] },
     ]);
 
     let res7 = await request
@@ -1015,21 +1015,21 @@ describe("board route verification", () => {
       .set("Token", `Bearer ${auth.genToken(user)}`)
       .send({
         ...body,
-        taskTitleToRemove: task.titleTask,
+        taskTitleToRemove: task.taskTitle,
         tableTitle: "pepe",
-        newTask: { ...task, titleTask: "1" }
+        newTask: { ...task, taskTitle: "1" },
       });
     let result7 = JSON.parse(res7.text);
     expect(res7.status).toBe(200);
     expect(result7.tables).toStrictEqual([
       {
         titleTable: "pepa",
-        content: [{ description: task.description, titleTask: "3" }]
+        content: [{ description: task.description, taskTitle: "3" }],
       },
       {
         titleTable: "pepe",
-        content: [{ description: task.description, titleTask: "1" }]
-      }
+        content: [{ description: task.description, taskTitle: "1" }],
+      },
     ]);
     done();
   });

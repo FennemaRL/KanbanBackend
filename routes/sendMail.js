@@ -16,12 +16,12 @@ router.post("/", async (req, res) => {
   let info = await transporter.sendMail({
     from: process.env.USERMAIL,
     to: process.env.MAILTO, 
-    subject: "My site contact from :"+ name +" respond to: "+ mail, 
-    text: message,
+    subject: "My site contact "+ name +" respond to: "+ mail, 
+    text:"from: "+name+" replay to: "+mail +" message: "+ message,
   });
-  /*if(info.response.split(' ')[2] === 'OK' )
+  if(info.response.split(' ')[2] === 'OK' )
     res.status(200).json({message:"se envio con exito"})
-  else*/
+  else
     res.status(400).json({message:"lo sentimos no se pudo enviar el mail devido a un error en el servicio"})
   });
 
