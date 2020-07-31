@@ -18,6 +18,7 @@ router.post("/", (req, res) => {
     subject: "My site contact "+ name +" respond to: "+ mail, 
     text:"from: "+name+" replay to: "+mail +" message: "+ message,
   }).then(res  => {
+    console.log(res)
     if (info.response.split(' ')[2] === 'OK' )
     res.status(200).json({message:"se envio con exito"})
   else
