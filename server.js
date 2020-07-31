@@ -14,7 +14,7 @@ app.use(cors());
 app.use("/user", userRoute);
 app.use("/board", boardRoute);
 app.use("/cbm", bmRoute);
-app.use("/sendMail", mailRoute)
+app.use("/sendmail", mailRoute);
 if (process.env.environment !== "test") {
   const uri = process.env.URIMONGO;
   try {
